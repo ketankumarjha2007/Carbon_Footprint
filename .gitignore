@@ -1,0 +1,19 @@
+# environment variables
+.env
+server/.env
+client/.env
+
+# node modules
+node_modules/
+
+# logs
+npm-debug.log
+yarn-debug.log
+
+# build folders
+dist/
+build/
+
+# OS files
+.DS_Store
+Thumbs.db

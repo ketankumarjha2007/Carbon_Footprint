@@ -1,0 +1,20 @@
+{
+  "name": "carbon_footprint",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server/index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "nodemon ./server/index.js",
+    "client": "npm run dev --prefix client"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "concurrently": "^9.2.1",
+    "nodemon": "^3.1.14",
+    "razorpay": "^2.9.6"
+  }
+}
