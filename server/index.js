@@ -27,7 +27,7 @@ app.use("/uploads", express.static("uploads"));
 /* ---------- Routes ---------- */
 
 app.get("/", (req, res) => {
-  res.send("Backend running successfully 🚀");
+  res.send("Backend running successfully ");
 });
 
 app.use("/api/contact", contactRoutes);
@@ -44,10 +44,10 @@ app.use("/api", readBill);
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
-    console.log("MongoDB Connected Successfully ✅");
+    console.log("MongoDB Connected Successfully");
 
     app.listen(PORT, () => {
-      console.log(`Server running at http://localhost:${PORT}`);
+      console.log(`console.log Server running on port ${PORT};`);
     });
   })
   .catch((error) => {
