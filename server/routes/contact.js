@@ -13,10 +13,14 @@ router.post("/send", async (req, res) => {
       host: "smtp.gmail.com",
       port: 587,
       secure: false,
+      requireTLS: true,
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
-      }
+      },
+      connectionTimeout: 20000,
+      greetingTimeout: 20000,
+      socketTimeout: 20000
     });
 
     const mailOptions = {
