@@ -39,8 +39,6 @@ export default function Calculator() {
   const [error,setError] = useState("");
   const [loading,setLoading] = useState(false);
 
-  const [billLoading,setBillLoading] = useState(false);
-
   /* ---------------- CITY SEARCH ---------------- */
 
   useEffect(()=>{
@@ -78,46 +76,6 @@ export default function Calculator() {
     setSelectedCity(c);
     setCity(`${c.name}, ${c.country}`);
     setSuggestions([]);
-
-  };
-
-  /* ---------------- BILL OCR ---------------- */
-
-  const handleBillUpload = async (e) => {
-
-    const file = e.target.files[0];
-
-    if(!file) return;
-
-    const formData = new FormData();
-    formData.append("bill", file);
-
-    setBillLoading(true);
-
-    try{
-
-      const res = await fetch(
-        "http://localhost:5000/api/read-bill",
-        {
-          method:"POST",
-          body:formData
-        }
-      );
-
-      const data = await res.json();
-
-      if(data.units){
-        setElectricity(data.units);
-      }
-
-    }
-    catch(err){
-
-      console.log("Bill OCR error:",err);
-
-    }
-
-    setBillLoading(false);
 
   };
 
@@ -285,22 +243,6 @@ type="number"
 placeholder="Daily travel distance (km)"
 onChange={(e)=>setDistance(e.target.value)}
 />
-
-{/* ELECTRICITY BILL UPLOAD */}
-
-<div className="bill-upload">
-
-<label>Upload Electricity Bill</label>
-
-<input
-type="file"
-accept="image/*,.pdf"
-onChange={handleBillUpload}
-/>
-
-{billLoading && <p>Reading bill...</p>}
-
-</div>
 
 <input
 type="number"

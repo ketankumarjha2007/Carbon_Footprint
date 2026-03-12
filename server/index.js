@@ -7,7 +7,6 @@ import paymentRoutes from "./routes/payment.js";
 import contactRoutes from "./routes/contact.js";
 import emissionRoutes from "./routes/emission.js";
 import trackerRoutes from "./routes/trackerRoutes.js";
-import readBill from "./routes/readbill.js";
 
 dotenv.config({ path: "./server/.env" });
 
@@ -20,10 +19,6 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-/* Serve uploaded bill images */
-
-app.use("/uploads", express.static("uploads"));
-
 /* ---------- Routes ---------- */
 
 app.get("/", (req, res) => {
@@ -34,10 +29,6 @@ app.use("/api/contact", contactRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/emission", emissionRoutes);
 app.use("/api/tracker", trackerRoutes);
-
-/* OCR Electricity Bill Route */
-
-app.use("/api", readBill);
 
 /* ---------- Database Connection ---------- */
 
