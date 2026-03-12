@@ -30,7 +30,7 @@ function Dashboard() {
 
       /* FETCH USER EMISSION DATA */
 
-      fetch(`http://localhost:5000/api/emission/${user.uid}`)
+      fetch(`https://carbonfootprint-production-c318.up.railway.app/api/emission/${user.uid}`)
         .then((res) => res.json())
         .then((data) => {
 

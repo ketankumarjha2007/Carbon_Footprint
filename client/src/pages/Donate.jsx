@@ -6,7 +6,7 @@ function Donate() {
 
     try {
 
-      const res = await fetch("http://localhost:5000/api/payment/order", {
+      const res = await fetch("https://carbonfootprint-production-c318.up.railway.app/api/payment/order", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"

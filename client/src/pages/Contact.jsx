@@ -14,7 +14,7 @@ function Contact() {
     e.preventDefault();
     setLoading(true);
 
-    const response = await fetch("http://localhost:5000/api/contact/send",{
+    const response = await fetch("https://carbonfootprint-production-c318.up.railway.app/api/contact/send",{
       method:"POST",
       headers:{
         "Content-Type":"application/json"
