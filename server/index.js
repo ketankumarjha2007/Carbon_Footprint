@@ -4,6 +4,8 @@ import cors from "cors";
 import mongoose from "mongoose";
 import paymentRoutes from "./routes/payment.js";
 import contactRoutes from "./routes/contact.js";
+import emissionRoutes from "./routes/emission.js";
+import trackerRoutes from "./routes/trackerRoutes.js";
 dotenv.config({ path: "./server/.env" });
 
 const app = express();
@@ -15,6 +17,8 @@ app.use(express.urlencoded({ extended: false }));
 
 app.use("/api/contact", contactRoutes);
 app.use("/api/payment", paymentRoutes);
+app.use("/api/emission", emissionRoutes);
+app.use("/api/tracker",trackerRoutes);
 
 app.get("/", (req, res) => {
   res.send("Backend running");

@@ -1,0 +1,251 @@
+
+.tracker{
+  min-height:100vh;
+  padding:60px 8%;
+  font-family:"Poppins",sans-serif;
+
+  background:linear-gradient(
+  135deg,
+  #f8fbff,
+  #eef6ff,
+  #e8fff2
+  );
+
+  animation:fadeIn 0.8s ease;
+}
+.tracker-header{
+  margin-bottom:40px;
+}
+
+.tracker-header h1{
+  font-size:34px;
+  font-weight:600;
+  color:#1a1a1a;
+}
+
+.tracker-header p{
+  color:#6a6a6a;
+  margin-top:5px;
+}
+
+
+/* SUMMARY CARD */
+
+.summary-card{
+
+  background:rgba(255,255,255,0.75);
+
+  backdrop-filter:blur(12px);
+
+  padding:28px;
+
+  border-radius:16px;
+
+  box-shadow:
+  0 12px 30px rgba(0,0,0,0.08);
+
+  margin-bottom:45px;
+
+  position:relative;
+
+  overflow:hidden;
+
+  transition:0.3s;
+}
+
+.summary-card:hover{
+  transform:translateY(-4px);
+}
+
+.summary-card::before{
+
+  content:"";
+
+  position:absolute;
+
+  top:0;
+  left:0;
+
+  width:100%;
+  height:4px;
+
+  background:linear-gradient(
+  90deg,
+  #00c6ff,
+  #00e676,
+  #7c4dff
+  );
+}
+
+.summary-card h3{
+  color:#777;
+}
+
+.summary-card p{
+  font-size:30px;
+  font-weight:600;
+  margin-top:8px;
+}
+
+
+/* TIMELINE SECTION */
+
+.timeline h3{
+  margin-bottom:20px;
+  font-size:22px;
+}
+
+
+/* TIMELINE ITEM */
+
+.timeline-item{
+
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+
+  padding:16px 22px;
+
+  margin-bottom:12px;
+
+  background:white;
+
+  border-radius:12px;
+
+  box-shadow:
+  0 6px 18px rgba(0,0,0,0.08);
+
+  transition:all 0.3s ease;
+
+  position:relative;
+
+  overflow:hidden;
+}
+
+
+/* GRADIENT LEFT BAR */
+
+.timeline-item::before{
+
+  content:"";
+
+  position:absolute;
+
+  left:0;
+  top:0;
+
+  width:4px;
+  height:100%;
+
+  background:linear-gradient(
+  180deg,
+  #00c6ff,
+  #00e676
+  );
+
+}
+
+
+/* HOVER EFFECT */
+
+.timeline-item:hover{
+
+  transform:translateY(-3px) scale(1.01);
+
+  box-shadow:
+  0 12px 28px rgba(0,0,0,0.15);
+
+}
+
+
+/* LEFT INFO */
+
+.timeline-left{
+  display:flex;
+  flex-direction:column;
+}
+
+.timeline-left span:first-child{
+  font-size:14px;
+  color:#777;
+}
+
+.timeline-left span:last-child{
+  font-size:16px;
+  font-weight:500;
+}
+
+
+/* RIGHT VALUE */
+
+.timeline-right{
+  font-size:18px;
+  font-weight:600;
+
+  background: linear-gradient(90deg,#00c6ff,#00e676,#00c6ff);
+  background-size:200%;
+
+  background-clip:text;
+  -webkit-background-clip:text;
+
+  color:transparent;
+  -webkit-text-fill-color:transparent;
+
+  animation: gradientMove 3s linear infinite;
+}
+
+@keyframes gradientMove{
+  from{background-position:0%;}
+  to{background-position:200%;}
+}
+
+
+/* RESPONSIVE DESIGN */
+
+@media (max-width:900px){
+
+.tracker{
+padding:50px 6%;
+}
+
+.timeline-item{
+flex-direction:column;
+align-items:flex-start;
+gap:8px;
+}
+
+.timeline-right{
+font-size:16px;
+}
+
+}
+
+@media (max-width:600px){
+
+.tracker-header h1{
+font-size:26px;
+}
+
+.summary-card p{
+font-size:24px;
+}
+
+.timeline h3{
+font-size:18px;
+}
+
+}
+
+@keyframes fadeIn{
+
+from{
+opacity:0;
+transform:translateY(20px);
+}
+
+to{
+opacity:1;
+transform:translateY(0);
+}
+
+}

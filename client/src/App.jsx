@@ -11,7 +11,9 @@ import Donate from "./pages/Donate";
 import Contact from "./pages/Contact";
 import Footer from "./component/Footer";
 import Login from "./pages/Login";
-import Dashboard from"./pages/Dashboard";
+import Dashboard from "./pages/Dashboard"
+import Calculator from "./pages/calculator"
+import Tracker from "./component/Tracker";
 
 function App() {
 
@@ -38,6 +40,9 @@ return (
 <Route path="/contact" element={<Contact />} />
 <Route path="/login" element={<Login />} />
 <Route path="/dashboard" element={<Dashboard/>}/>
+<Route path="/calculator" element={<Calculator/>}/>
+<Route path="/tracker" element={<Tracker/>}/>
+
 </Routes>
 
 <Footer />
