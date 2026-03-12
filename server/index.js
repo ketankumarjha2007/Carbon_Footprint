@@ -2,36 +2,54 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import mongoose from "mongoose";
+
 import paymentRoutes from "./routes/payment.js";
 import contactRoutes from "./routes/contact.js";
 import emissionRoutes from "./routes/emission.js";
 import trackerRoutes from "./routes/trackerRoutes.js";
+import readBill from "./routes/readbill.js";
+
 dotenv.config({ path: "./server/.env" });
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+/* ---------- Middleware ---------- */
+
 app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: true }));
+
+/* Serve uploaded bill images */
+
+app.use("/uploads", express.static("uploads"));
+
+/* ---------- Routes ---------- */
+
+app.get("/", (req, res) => {
+  res.send("Backend running successfully 🚀");
+});
 
 app.use("/api/contact", contactRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/emission", emissionRoutes);
-app.use("/api/tracker",trackerRoutes);
+app.use("/api/tracker", trackerRoutes);
 
-app.get("/", (req, res) => {
-  res.send("Backend running");
-});
-mongoose.connect(process.env.MONGO_URI)
-.then(() => {
-  console.log("MongoDB Connected");
+/* OCR Electricity Bill Route */
 
-  app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+app.use("/api", readBill);
+
+/* ---------- Database Connection ---------- */
+
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => {
+    console.log("MongoDB Connected Successfully ✅");
+
+    app.listen(PORT, () => {
+      console.log(`Server running at http://localhost:${PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.error("MongoDB connection error:", error);
   });
-
-})
-.catch((err) => {
-  console.error("MongoDB connection error:", err);
-});

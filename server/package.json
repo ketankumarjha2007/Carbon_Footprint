@@ -19,6 +19,7 @@
     "mongoose": "^9.3.0",
     "multer": "^2.1.1",
     "nodemailer": "^8.0.2",
+    "pdf-poppler": "^0.2.3",
     "razorpay": "^2.9.6",
     "tesseract.js": "^7.0.0"
   }

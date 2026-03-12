@@ -39,6 +39,10 @@ export default function Calculator() {
   const [error,setError] = useState("");
   const [loading,setLoading] = useState(false);
 
+  const [billLoading,setBillLoading] = useState(false);
+
+  /* ---------------- CITY SEARCH ---------------- */
+
   useEffect(()=>{
 
     if(city.length < 2){
@@ -77,6 +81,46 @@ export default function Calculator() {
 
   };
 
+  /* ---------------- BILL OCR ---------------- */
+
+  const handleBillUpload = async (e) => {
+
+    const file = e.target.files[0];
+
+    if(!file) return;
+
+    const formData = new FormData();
+    formData.append("bill", file);
+
+    setBillLoading(true);
+
+    try{
+
+      const res = await fetch(
+        "http://localhost:5000/api/read-bill",
+        {
+          method:"POST",
+          body:formData
+        }
+      );
+
+      const data = await res.json();
+
+      if(data.units){
+        setElectricity(data.units);
+      }
+
+    }
+    catch(err){
+
+      console.log("Bill OCR error:",err);
+
+    }
+
+    setBillLoading(false);
+
+  };
+
   const fetchAQI = async (lat,lon) => {
 
     try{
@@ -112,6 +156,8 @@ export default function Calculator() {
     return {text:"Hazardous",class:"aqi-hazard"};
 
   };
+
+  /* ---------------- CALCULATION ---------------- */
 
   const calculate = async () => {
 
@@ -177,7 +223,6 @@ export default function Calculator() {
 
       console.log("Saved to DB:",data);
 
-      // navigate after 3 seconds
       setTimeout(()=>{
         navigate("/dashboard");
       },3000);
@@ -196,13 +241,15 @@ export default function Calculator() {
   const aqiInfo =
     aqi !== null ? getAqiInfo(aqi) : null;
 
+  /* ---------------- UI ---------------- */
+
   return (
 
 <section className="calc-wrapper">
 
 <div className="calculator">
 
-<h2>🌍 Carbon Footprint Calculator</h2>
+<h2> Carbon Footprint Calculator</h2>
 
 <input
 value={city}
@@ -239,9 +286,26 @@ placeholder="Daily travel distance (km)"
 onChange={(e)=>setDistance(e.target.value)}
 />
 
+{/* ELECTRICITY BILL UPLOAD */}
+
+<div className="bill-upload">
+
+<label>Upload Electricity Bill</label>
+
+<input
+type="file"
+accept="image/*,.pdf"
+onChange={handleBillUpload}
+/>
+
+{billLoading && <p>Reading bill...</p>}
+
+</div>
+
 <input
 type="number"
 placeholder="Monthly electricity usage (kWh)"
+value={electricity}
 onChange={(e)=>setElectricity(e.target.value)}
 />
 
