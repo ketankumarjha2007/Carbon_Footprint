@@ -113,8 +113,8 @@ Dashboard & Tracker Visualization
 ### Clone the repository
 
 ```bash
-git clone https://github.com/ketankumarjha2007/carbontrack.git
-cd carbontrack
+git clone https://github.com/ketankumarjha2007/Carbon_Footprint
+cd Carbon_Footprint
 ```
 
 ---
