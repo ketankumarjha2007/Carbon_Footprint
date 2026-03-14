@@ -136,10 +136,10 @@ export default function Calculator() {
     setLoading(true);
 
     const travelEmission =
-      travelFactors[travel] * Number(distance) * 30;
+      travelFactors[travel] * Number(distance) ;
 
     const electricityEmission =
-      Number(electricity) * 0.82;
+      (Number(electricity)/30) * 0.82;
 
     const dietEmission =
       dietFactors[diet];
@@ -273,7 +273,7 @@ onChange={(e)=>setElectricity(e.target.value)}
 <h3>Your Carbon Impact</h3>
 
 <p className="carbon-value">
-{carbon} kg CO₂e / month
+{carbon} kg CO₂e / Day
 </p>
 
 {aqiInfo && (
