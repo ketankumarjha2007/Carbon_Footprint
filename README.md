@@ -6,6 +6,8 @@ CarbonTrack is a full-stack web application that helps users monitor their **dai
 
 The platform allows users to calculate their carbon footprint and track emissions over time through a **dashboard and activity tracker**.
 
+It also tells live **AQI** of selected country or city and also give us the **AQI level** of that place 
+
 The project is built using **React, Node.js, Express, MongoDB, and Firebase**, with deployment on **Vercel and Railway**.
 
 ---
