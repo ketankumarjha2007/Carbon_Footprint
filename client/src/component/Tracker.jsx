@@ -16,7 +16,7 @@ const user = auth.currentUser;
 if(!user) return;
 
 const res = await fetch(
-`https://carbonfootprint-production-c318.up.railway.app/api/emission/${user.uid}`
+`https://carbon-footprint-1-a5ae.onrender.com/api/emission/${user.uid}`
 );
 
 const data = await res.json();

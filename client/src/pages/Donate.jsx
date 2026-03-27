@@ -6,7 +6,7 @@ function Donate() {
 
     try {
 
-      const res = await fetch("https://carbonfootprint-production-c318.up.railway.app/api/payment/order", {
+      const res = await fetch("https://carbon-footprint-1-a5ae.onrender.com/api/payment/order", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"

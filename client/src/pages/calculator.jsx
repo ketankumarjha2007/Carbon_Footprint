@@ -157,7 +157,7 @@ export default function Calculator() {
     try{
 
       const response = await fetch(
-        "https://carbonfootprint-production-c318.up.railway.app/api/emission/save",
+        "https://carbon-footprint-1-a5ae.onrender.com/api/emission/save",
         {
           method:"POST",
           headers:{
