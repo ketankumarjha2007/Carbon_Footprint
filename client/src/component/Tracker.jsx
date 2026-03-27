@@ -6,38 +6,54 @@ function Tracker(){
 
 const [records,setRecords] = useState([]);
 const [todayTotal,setTodayTotal] = useState(0);
+const [loading,setLoading] = useState(true);
+const [error,setError] = useState("");
 
 useEffect(()=>{
 
 const fetchData = async () => {
 
-const user = auth.currentUser;
+try{
+  const user = auth.currentUser;
 
-if(!user) return;
+  if(!user){
+    setError("User not logged in");
+    setLoading(false);
+    return;
+  }
 
-const res = await fetch(
-`https://carbon-footprint-1-a5ae.onrender.com/api/emission/${user.uid}`
-);
+  const res = await fetch(
+  `https://carbon-footprint-1-a5ae.onrender.com/api/emission/${user.uid}`
+  );
 
-const data = await res.json();
+  const data = await res.json();
 
-setRecords(data);
+  /* SORT latest first */
+  const sorted = data.sort(
+    (a,b)=> new Date(b.createdAt) - new Date(a.createdAt)
+  );
 
-/* calculate today's total */
+  setRecords(sorted);
 
-const today = new Date().toDateString();
+  /* TODAY TOTAL */
+  const today = new Date().toDateString();
 
-let total = 0;
+  let total = 0;
 
-data.forEach(item=>{
+  sorted.forEach(item=>{
+    if(new Date(item.createdAt).toDateString() === today){
+      total += item.total;
+    }
+  });
 
-if(new Date(item.createdAt).toDateString() === today){
-total += item.total;
+  setTodayTotal(total);
+
+}catch(err){
+  setError("Failed to load data");
 }
-
-});
-
-setTodayTotal(total);
+finally{
+  setLoading(false);
+}
 
 };
 
@@ -45,26 +61,60 @@ fetchData();
 
 },[]);
 
+
+
+/* ================= UI ================= */
+
+if(loading){
+  return(
+    <div className="tracker center">
+      <p>Loading your carbon data...</p>
+    </div>
+  );
+}
+
+if(error){
+  return(
+    <div className="tracker center">
+      <p>{error}</p>
+    </div>
+  );
+}
+
 return(
 
 <div className="tracker">
 
+{/* HEADER */}
 <div className="tracker-header">
-
 <h1>📊 Carbon Activity Tracker</h1>
-<p>Monitor your daily carbon footprint</p>
-
+<p>Monitor your daily carbon footprint in real-time</p>
 </div>
 
 
+{/* SUMMARY */}
 <div className="summary-card">
 
 <h3>Today's Carbon</h3>
-<p>{todayTotal} kg CO₂</p>
+
+<p>
+{todayTotal === 0 ? "0.0" : todayTotal.toFixed(2)} kg CO₂
+</p>
 
 </div>
 
 
+{/* EMPTY STATE */}
+{records.length === 0 ? (
+
+<div className="empty-state">
+<p>No activity yet </p>
+<span>Start tracking to see your impact!</span>
+</div>
+
+) : (
+
+/* TIMELINE */
 <div className="timeline">
 
 <h3>Activity Timeline</h3>
@@ -90,7 +140,7 @@ return(
 </div>
 
 <div className="timeline-right">
-{item.total} kg CO₂
+{item.total.toFixed(2)} kg CO₂
 </div>
 
 </div>
@@ -100,6 +150,8 @@ return(
 })}
 
 </div>
+
+)}
 
 </div>
 

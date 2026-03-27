@@ -1,42 +1,112 @@
+/* ---------- BACKGROUND ---------- */
+
 .contact-section{
   min-height:100vh;
   display:flex;
   align-items:center;
   justify-content:center;
-  background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+  background: radial-gradient(circle at top left, #0f2027, #203a43, #2c5364);
   padding:40px;
+  position:relative;
+  overflow:hidden;
 }
+
+/* animated glow background */
+.contact-section::before{
+  content:"";
+  position:absolute;
+  width:600px;
+  height:600px;
+  background:radial-gradient(circle, #22c55e55, transparent 70%);
+  top:-150px;
+  left:-150px;
+  animation:float 8s infinite ease-in-out;
+}
+
+.contact-section::after{
+  content:"";
+  position:absolute;
+  width:500px;
+  height:500px;
+  background:radial-gradient(circle, #06b6d455, transparent 70%);
+  bottom:-150px;
+  right:-150px;
+  animation:float 10s infinite ease-in-out reverse;
+}
+
+/* ---------- CONTAINER ---------- */
 
 .contact-container{
   display:flex;
   gap:40px;
   max-width:1000px;
   width:100%;
+  z-index:1;
 }
+
+/* ---------- LEFT INFO ---------- */
 
 .contact-info{
   color:white;
   flex:1;
+
+  display:flex;
+  flex-direction:column;
+  justify-content:center;   /* vertical center */
+  align-items:center;       /* horizontal center */
+  text-align:center;        /* center text */
+
+  animation:slideInLeft 1s ease;
 }
 
 .contact-info h2{
-  font-size:36px;
-  margin-bottom:15px;
+  font-size:48px;
+  font-weight:800;
+  letter-spacing:1px;
+  margin-bottom:20px;
+
+  background: linear-gradient(90deg,#4ade80,#22c55e,#06b6d4);
+
+  background-clip: text;           /* standard */
+  -webkit-background-clip: text;   /* chrome/safari */
+
+  color: transparent;              /* fallback */
+  -webkit-text-fill-color: transparent;
+
+  position:relative;
+  display:inline-block;
+
+  animation: glowText 2.5s ease-in-out infinite alternate;
+}
+.contact-info p{
+  opacity:0.85;
+  line-height:1.7;
 }
 
-.contact-info p{
-  opacity:0.8;
-  line-height:1.6;
-}
+/* ---------- FORM CARD ---------- */
 
 .contact-form{
   flex:1;
-  backdrop-filter:blur(12px);
-  background:rgba(255,255,255,0.08);
-  padding:35px;
-  border-radius:18px;
-  border:1px solid rgba(255,255,255,0.2);
-  box-shadow:0 20px 40px rgba(0,0,0,0.2);
+  backdrop-filter:blur(18px);
+  background:rgba(255,255,255,0.06);
+  padding:40px;
+  border-radius:20px;
+  border:1px solid rgba(255,255,255,0.15);
+
+  box-shadow:
+    0 0 30px rgba(34,197,94,0.2),
+    0 10px 40px rgba(0,0,0,0.3);
+
+  transition:0.3s;
+  animation:slideInRight 1s ease;
+}
+
+/* hover glow effect */
+.contact-form:hover{
+  transform:translateY(-5px);
+  box-shadow:
+    0 0 40px rgba(34,197,94,0.4),
+    0 15px 50px rgba(0,0,0,0.4);
 }
 
 .contact-form h3{
@@ -44,27 +114,38 @@
   margin-bottom:25px;
 }
 
+/* ---------- INPUT GROUP ---------- */
+
 .input-group{
   position:relative;
-  margin-bottom:25px;
+  margin-bottom:28px;
 }
 
 .input-group input,
 .input-group textarea{
   width:100%;
-  padding:12px;
+  padding:14px;
   border:none;
   border-bottom:2px solid rgba(255,255,255,0.4);
   background:transparent;
   color:white;
   outline:none;
   font-size:15px;
+  transition:0.3s;
 }
 
+/* glow line effect */
+.input-group input:focus,
+.input-group textarea:focus{
+  border-bottom:2px solid #4ade80;
+  box-shadow:0 5px 10px rgba(74,222,128,0.3);
+}
+
+/* floating label */
 .input-group label{
   position:absolute;
   left:0;
-  top:10px;
+  top:12px;
   color:rgba(255,255,255,0.6);
   pointer-events:none;
   transition:0.3s;
@@ -79,34 +160,101 @@
   color:#4ade80;
 }
 
+/* ---------- BUTTON ---------- */
+
 button{
   width:100%;
-  padding:12px;
+  padding:14px;
   border:none;
-  border-radius:10px;
-  background:#22c55e;
+  border-radius:12px;
+
+  background:linear-gradient(90deg,#22c55e,#4ade80);
   color:white;
   font-weight:600;
+  font-size:16px;
+
   cursor:pointer;
-  transition:0.3s;
+  transition:all 0.3s ease;
 }
 
+/* hover animation */
 button:hover{
-  background:#16a34a;
-  transform:translateY(-2px);
-  box-shadow:0 8px 20px rgba(0,0,0,0.25);
+  transform:translateY(-3px) scale(1.02);
+  box-shadow:0 0 20px #22c55e;
 }
+
+/* click feel */
+button:active{
+  transform:scale(0.96);
+}
+
+/* ---------- SUCCESS MESSAGE ---------- */
 
 .success-box{
-  background:#d1fae5;
-  color:#065f46;
-  padding:10px;
-  border-radius:8px;
+  background:rgba(34,197,94,0.15);
+  color:#4ade80;
+  padding:12px;
+  border-radius:10px;
   margin-bottom:15px;
+  border:1px solid rgba(34,197,94,0.3);
+
   animation:fadeIn 0.4s ease;
 }
+
+/* ---------- ANIMATIONS ---------- */
 
 @keyframes fadeIn{
   from{opacity:0;transform:translateY(-10px);}
   to{opacity:1;transform:translateY(0);}
+}
+
+@keyframes slideInLeft{
+  from{opacity:0;transform:translateX(-50px);}
+  to{opacity:1;transform:translateX(0);}
+}
+
+@keyframes slideInRight{
+  from{opacity:0;transform:translateX(50px);}
+  to{opacity:1;transform:translateX(0);}
+}
+
+@keyframes float{
+  0%,100%{transform:translateY(0);}
+  50%{transform:translateY(30px);}
+}
+
+/* ---------- RESPONSIVE ---------- */
+
+@media(max-width:768px){
+  .contact-container{
+    flex-direction:column;
+  }
+}
+
+.contact-info h2::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  bottom:-10px;
+  transform:translateX(-50%);
+  width:60%;
+  height:4px;
+
+  background:linear-gradient(90deg,#4ade80,#06b6d4);
+  border-radius:10px;
+
+  box-shadow:0 0 15px #4ade80;
+}
+
+@keyframes gradientMove{
+  0%{
+    background-position: 0% center;
+  }
+  100%{
+    background-position: 200% center;
+  }
+}
+.contact-info h2:hover{
+  transform:scale(1.05);
+  transition:0.3s;
 }

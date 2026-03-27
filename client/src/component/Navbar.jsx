@@ -1,125 +1,99 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { auth } from "../firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 
 import "../styles/Navbar.css";
 
-function Navbar(){
+function Navbar() {
 
-const navigate = useNavigate();
-const location = useLocation();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-const [menuOpen,setMenuOpen] = useState(false);
-const [user,setUser] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  const [dropdown, setDropdown] = useState(false);
+  const [darkMode, setDarkMode] = useState(true);
 
-useEffect(()=>{
+  const dropdownRef = useRef();
 
-const unsubscribe = onAuthStateChanged(auth,(currentUser)=>{
-setUser(currentUser);
-});
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsubscribe();
+  }, []);
 
-return ()=>unsubscribe();
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
-},[]);
+  const handleLogout = async () => {
+    await signOut(auth);
+    navigate("/");
+  };
 
-const handleLogout = async () =>{
-try{
+  const isActive = (path) =>
+    location.pathname.startsWith(path) ? "active-link" : "";
 
-await signOut(auth);
+  return (
+    <nav className={`navbar ${darkMode ? "dark" : "light"}`}>
 
-setMenuOpen(false);
+      {/* LOGO */}
+      <div className="logo">
+        <Link to="/"> CarbonTrack</Link>
+      </div>
 
-navigate("/");
+      {/* HAMBURGER */}
+      <div className="menu-icon" onClick={() => setMenuOpen(!menuOpen)}>
+        ☰
+      </div>
 
-}
-catch(error){
-console.log("Logout Error:",error);
-}
-}
+      <div className={`nav-links ${menuOpen ? "active" : ""}`}>
 
-const isActive = (path) =>{
-return location.pathname === path ? "active-link" : "";
-}
+        {!user && (
+          <>
+            <Link className={isActive("/")} to="/">Home</Link>
+            <Link className={isActive("/about")} to="/about">About</Link>
+            <Link className={isActive("/donate")} to="/donate">Donate</Link>
+            <Link className={isActive("/contact")} to="/contact">Contact</Link>
+            <Link to="/login" className="login-btn">Login</Link>
+          </>
+        )}
 
-return(
+        {user && (
+          <>
+            <Link className={isActive("/dashboard")} to="/dashboard">Dashboard</Link>
+            <Link className={isActive("/calculator")} to="/calculator">Calculator</Link>
+            <Link className={isActive("/tracker")} to="/tracker">Tracker</Link>
+            <Link className={isActive("/donate")} to="/donate">Donate</Link>
+            <div 
+              className="profile" 
+              ref={dropdownRef}
+              onClick={() => setDropdown(!dropdown)}
+            >
+              <img src={user.photoURL || "https://i.pravatar.cc/40"} alt="user"/>
+              <span>{user.displayName?.split(" ")[0] || "User"}</span>
 
-<nav className="navbar">
+              {dropdown && (
+                <div className="dropdown">
+                  <button onClick={handleLogout}>Logout</button>
+                </div>
+              )}
+            </div>
+          </>
+        )}
 
-<div className="logo">
-<Link to="/">CarbonTrack</Link>
-</div>
-
-<div className="menu-icon" onClick={()=>setMenuOpen(!menuOpen)}>
-☰
-</div>
-
-<div className={`nav-links ${menuOpen ? "active" : ""}`}>
-
-{!user && (
-<>
-
-<Link className={isActive("/")} to="/">Home</Link>
-
-<Link className={isActive("/about")} to="/about">About</Link>
-
-<Link className={isActive("/donate")} to="/donate">Donate</Link>
-
-<Link className={isActive("/contact")} to="/contact">Contact</Link>
-
-<Link to="/login" className="login-btn">
-Login
-</Link>
-
-</>
-)}
-
-{user && (
-<>
-
-<div className="user-info">
-
-<img 
-src={user.photoURL || "https://i.pravatar.cc/40"} 
-alt="user"
-className="avatar"
-/>
-
-<span className="user-name">
-{user.displayName ? user.displayName.split(" ")[0] : "User"}
-</span>
-
-</div>
-
-<Link className={isActive("/dashboard")} to="/dashboard">
-Dashboard
-</Link>
-
-<Link className={isActive("/calculator")} to="/calculator">
-Calculator
-</Link>
-
-<Link className={isActive("/tracker")} to="/tracker">
-Tracker
-</Link>
-
-<Link className={isActive("/donate")} to="/donate">
-Donate
-</Link>
-
-<button onClick={handleLogout} className="logout-btn">
-Logout
-</button>
-
-</>
-)}
-
-</div>
-
-</nav>
-
-)
-
+      </div>
+    </nav>
+  );
 }
 
 export default Navbar;

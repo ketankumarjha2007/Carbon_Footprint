@@ -16,61 +16,69 @@ function Login() {
   const [email,setEmail] = useState("");
   const [password,setPassword] = useState("");
   const [error,setError] = useState("");
+  const [showPassword,setShowPassword] = useState(false);
+  const [loading,setLoading] = useState(false);
 
   const navigate = useNavigate();
 
-  // Redirect if already logged in
+  /* ---------- AUTO REDIRECT ---------- */
   useEffect(()=>{
-
     const unsubscribe = onAuthStateChanged(auth,(user)=>{
-
       if(user){
         navigate("/dashboard");
       }
-
     });
-
     return ()=>unsubscribe();
-
   },[navigate]);
 
-
-  // Google Login
+  /* ---------- GOOGLE LOGIN ---------- */
   const handleGoogleLogin = async () => {
+    setLoading(true);
+    setError("");
     try{
       await signInWithPopup(auth, provider);
       navigate("/dashboard");
     }catch(err){
       setError(err.message);
     }
+    setLoading(false);
   };
 
-
-  // Email Login
+  /* ---------- EMAIL LOGIN ---------- */
   const handleLogin = async () => {
+    setLoading(true);
+    setError("");
     try{
       await signInWithEmailAndPassword(auth,email,password);
       navigate("/dashboard");
     }catch(err){
       setError(err.message);
     }
+    setLoading(false);
   };
 
-
-  // Signup
+  /* ---------- SIGNUP ---------- */
   const handleSignup = async () => {
+    setLoading(true);
+    setError("");
     try{
       await createUserWithEmailAndPassword(auth,email,password);
       navigate("/dashboard");
     }catch(err){
       setError(err.message);
     }
+    setLoading(false);
   };
-
 
   return(
 
     <div className="login-wrapper">
+
+      {/* 🌌 PARTICLES */}
+      <div className="particles">
+        <span></span><span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span>
+      </div>
 
       <div className="login-box">
 
@@ -79,6 +87,7 @@ function Login() {
 
         {error && <p className="error">{error}</p>}
 
+        {/* EMAIL */}
         <input
           type="email"
           placeholder="Email address"
@@ -86,27 +95,40 @@ function Login() {
           onChange={(e)=>setEmail(e.target.value)}
         />
 
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e)=>setPassword(e.target.value)}
-        />
+        {/* PASSWORD WITH TOGGLE */}
+        <div className="password-field">
+          <input
+            type={showPassword ? "text" : "password"}
+            placeholder="Password"
+            value={password}
+            onChange={(e)=>setPassword(e.target.value)}
+          />
 
-        <button className="btn login" onClick={handleLogin}>
-          Login
+          <span
+            className="toggle"
+            onClick={()=>setShowPassword(!showPassword)}
+          >
+            {showPassword ? "🙈" : "👁️"}
+          </span>
+        </div>
+
+        {/* LOGIN */}
+        <button className="btn login" onClick={handleLogin} disabled={loading}>
+          {loading ? "Please wait..." : "Login"}
         </button>
 
-        <button className="btn signup" onClick={handleSignup}>
-          Create Account
+        {/* SIGNUP */}
+        <button className="btn signup" onClick={handleSignup} disabled={loading}>
+          {loading ? "Creating..." : "Create Account"}
         </button>
 
         <div className="divider">
           <span>OR</span>
         </div>
 
-        <button className="btn google" onClick={handleGoogleLogin}>
-          Continue with Google
+        {/* GOOGLE */}
+        <button className="btn google" onClick={handleGoogleLogin} disabled={loading}>
+          {loading ? "Loading..." : "Continue with Google"}
         </button>
 
       </div>

@@ -3,15 +3,19 @@ import "../styles/About.css";
 function About() {
   return (
     <div className="about-page">
+      <div className="particles">
+        <span></span><span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span>
+      </div>
 
+      {/* ---------- HERO ---------- */}
       <section className="about-hero">
-        <h1>About CarbonTrack </h1>
+        <h1>About CarbonTrack</h1>
         <p>
           Empowering individuals to understand and reduce their carbon footprint
           for a cleaner and greener planet.
         </p>
       </section>
-
       <section className="about-cards">
 
         <div className="about-card">
@@ -25,7 +29,7 @@ function About() {
         </div>
 
         <div className="about-card">
-          <h2>Why It Matters</h2>
+          <h2> Why It Matters</h2>
           <p>
             Climate change is accelerating due to increasing carbon emissions.
             By tracking and reducing our footprint, we can slow global warming
