@@ -49,22 +49,16 @@ export default function Calculator() {
     }
 
     const fetchCities = async () => {
-
       try{
-
         const res = await fetch(
           `https://geocoding-api.open-meteo.com/v1/search?name=${city}`
         );
-
         const data = await res.json();
-
         setSuggestions(data.results || []);
-
       }
       catch{
         setSuggestions([]);
       }
-
     };
 
     fetchCities();
@@ -72,47 +66,33 @@ export default function Calculator() {
   },[city]);
 
   const selectCity = (c) => {
-
     setSelectedCity(c);
     setCity(`${c.name}, ${c.country}`);
     setSuggestions([]);
-
   };
 
   const fetchAQI = async (lat,lon) => {
-
     try{
-
       const res = await fetch(
         `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&hourly=us_aqi`
       );
-
       const data = await res.json();
-
       const value = data?.hourly?.us_aqi?.[0];
-
       setAqi(value ?? "N/A");
-
     }
     catch{
-
       setAqi("N/A");
-
     }
-
   };
 
   const getAqiInfo = (value) => {
-
     if(value === "N/A") return {text:"Unavailable",class:"aqi-na"};
     if(value <= 50) return {text:"Good",class:"aqi-good"};
     if(value <= 100) return {text:"Moderate",class:"aqi-moderate"};
     if(value <= 150) return {text:"Unhealthy for Sensitive Groups",class:"aqi-usg"};
     if(value <= 200) return {text:"Unhealthy",class:"aqi-unhealthy"};
     if(value <= 300) return {text:"Very Unhealthy",class:"aqi-very"};
-
     return {text:"Hazardous",class:"aqi-hazard"};
-
   };
 
   /* ---------------- CALCULATION ---------------- */
@@ -136,18 +116,20 @@ export default function Calculator() {
     setLoading(true);
 
     const travelEmission =
-      travelFactors[travel] * Number(distance) ;
+      travelFactors[travel] * Number(distance);
 
+    // MONTHLY → DAILY conversion using 30.44 days
     const electricityEmission =
-      (Number(electricity)/30) * 0.82;
+      (Number(electricity) / 30.44) * 0.82;
 
     const dietEmission =
       dietFactors[diet];
 
     const total =
       travelEmission + electricityEmission + dietEmission;
+    const finalCarbon = Number(total.toFixed(2));
 
-    setCarbon(total.toFixed(2));
+    setCarbon(finalCarbon);
 
     await fetchAQI(
       selectedCity.latitude,
@@ -155,7 +137,6 @@ export default function Calculator() {
     );
 
     try{
-
       const response = await fetch(
         "https://carbon-footprint-1-a5ae.onrender.com/api/emission/save",
         {
@@ -164,21 +145,18 @@ export default function Calculator() {
             "Content-Type":"application/json"
           },
           body:JSON.stringify({
-
             userId:user.uid,
             city:selectedCity.name,
             travel,
             distance,
             electricity,
             diet,
-            total
-
+            total: finalCarbon
           })
         }
       );
 
       const data = await response.json();
-
       console.log("Saved to DB:",data);
 
       setTimeout(()=>{
@@ -187,9 +165,7 @@ export default function Calculator() {
 
     }
     catch(err){
-
       console.log("Database save error",err);
-
     }
 
     setLoading(false);
@@ -246,7 +222,7 @@ onChange={(e)=>setDistance(e.target.value)}
 
 <input
 type="number"
-placeholder="Monthly electricity usage (kWh)"
+placeholder="Monthly electricity usage (kWh) (auto converted to daily)"
 value={electricity}
 onChange={(e)=>setElectricity(e.target.value)}
 />
@@ -266,22 +242,20 @@ onChange={(e)=>setElectricity(e.target.value)}
 {loading ? "Calculating..." : "Calculate"}
 </button>
 
-{carbon && (
+{carbon !== null && (
 
 <div className="result-card">
 
 <h3>Your Carbon Impact</h3>
 
 <p className="carbon-value">
-{carbon} kg CO₂e / Day
+{carbon.toFixed(2)} kg CO₂e / Day
 </p>
 
 {aqiInfo && (
-
 <p className={`aqi ${aqiInfo.class}`}>
 AQI: {aqi} — {aqiInfo.text}
 </p>
-
 )}
 
 <p className="redirect">
