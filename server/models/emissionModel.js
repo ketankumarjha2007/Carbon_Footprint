@@ -1,30 +1,55 @@
 import mongoose from "mongoose";
 
 const emissionSchema = new mongoose.Schema({
-  userId:{
-    type:String,
-    required:true
+
+  userId: {
+    type: String,
+    required: true,
+    index: true // 🔥 faster queries
   },
-  transport:{
-    type:Number,
-    default:0
+
+  transport: {
+    type: Number,
+    required: true
   },
-  electricity:{
-    type:Number,
-    default:0
+
+  electricity: {
+    type: Number,
+    required: true
   },
-  food:{
-    type:Number,
-    default:0
+
+  food: {
+    type: Number,
+    required: true
   },
-  total:{
-    type:Number,
-    required:true
+
+  total: {
+    type: Number,
+    required: true
   },
-  createdAt:{
-    type:Date,
-    default:Date.now
+
+  aqi: {
+    type: Number,
+    default: null
+  },
+
+  carbonSaved: {
+    type: Number,
+    default: 0
+  },
+
+  points: {
+    type: Number,
+    default: 0
+  },
+
+  level: {
+    type: String,
+    default: "Beginner"
   }
+
+}, {
+  timestamps: true // 🔥 THIS IS THE MOST IMPORTANT FIX
 });
 
 export default mongoose.model("Emission", emissionSchema);

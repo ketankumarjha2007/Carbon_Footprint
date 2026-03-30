@@ -11,14 +11,15 @@ function Dashboard() {
   const [userName, setUserName] = useState("User");
   const [totalCarbon, setTotalCarbon] = useState(0);
   const [monthCarbon, setMonthCarbon] = useState(0);
+  const [points, setPoints] = useState(0);
+  const [carbonSaved, setCarbonSaved] = useState(0);
+  const [level, setLevel] = useState("Beginner");
 
   useEffect(() => {
 
     const unsubscribe = onAuthStateChanged(auth, (user) => {
 
       if (!user) return;
-
-      /* GET FIRST NAME FROM GOOGLE LOGIN */
 
       let name = "User";
 
@@ -28,7 +29,7 @@ function Dashboard() {
 
       setUserName(name);
 
-      /* FETCH USER EMISSION DATA */
+      /* ---------------- FETCH EMISSION DATA ---------------- */
 
       fetch(`https://carbon-footprint-1-a5ae.onrender.com/api/emission/${user.uid}`)
         .then((res) => res.json())
@@ -44,17 +45,13 @@ function Dashboard() {
           data.forEach((item) => {
 
             const emissionValue = Number(item.total) || 0;
-
             total += emissionValue;
 
             if (item.createdAt) {
-
               const itemMonth = new Date(item.createdAt).getMonth();
-
               if (itemMonth === currentMonth) {
                 month += emissionValue;
               }
-
             }
 
           });
@@ -62,9 +59,21 @@ function Dashboard() {
           setTotalCarbon(total.toFixed(2));
           setMonthCarbon(month.toFixed(2));
 
+        });
+
+      fetch(`https://carbon-footprint-1-a5ae.onrender.com/api/emission/stats/${user.uid}`)
+        .then((res) => res.json())
+        .then((data) => {
+
+          if (!data.success) return;
+
+          setPoints(data.totalPoints || 0);
+          setCarbonSaved(data.totalCarbonSaved || 0);
+          setLevel(data.level || "Beginner");
+
         })
         .catch((err) => {
-          console.log("Error fetching emissions:", err);
+          console.log("Error fetching stats:", err);
         });
 
     });
@@ -97,6 +106,21 @@ function Dashboard() {
         <div className="card">
           <h2>Goal</h2>
           <p>Reduce 20%</p>
+        </div>
+
+        <div className="card reward-card">
+          <h2>⭐ Points</h2>
+          <p>{points}</p>
+        </div>
+
+        <div className="card reward-card">
+          <h2>🌱 Carbon Saved</h2>
+          <p>{carbonSaved} kg</p>
+        </div>
+
+        <div className="card reward-card level-card">
+          <h2>🏆 Level</h2>
+          <p>{level}</p>
         </div>
 
       </div>

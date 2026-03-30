@@ -3,6 +3,8 @@ import { auth } from "../firebase";
 import "../styles/calculator.css";
 import { useNavigate } from "react-router-dom";
 
+/* ---------------- FACTORS ---------------- */
+
 const travelFactors = {
   Car: 0.21,
   Bike: 0.05,
@@ -35,8 +37,13 @@ export default function Calculator() {
 
   const [carbon, setCarbon] = useState(null);
   const [aqi, setAqi] = useState(null);
+
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const [points, setPoints] = useState(0);
+  const [carbonSaved, setCarbonSaved] = useState(0);
+  const [level, setLevel] = useState("Beginner");
 
   /* ---------------- CITY SEARCH ---------------- */
 
@@ -67,46 +74,54 @@ export default function Calculator() {
     setSuggestions([]);
   };
 
-  /* ---------------- AQI ---------------- */
+  /* ---------------- AQI FETCH ---------------- */
 
   const fetchAQI = async (lat, lon) => {
     try {
       const res = await fetch(
         `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&hourly=us_aqi`
       );
+
       const data = await res.json();
-      const value = data?.hourly?.us_aqi?.[0] ?? "N/A";
+      const value = Number(data?.hourly?.us_aqi?.[0]) || null;
 
       setAqi(value);
       return value;
     } catch {
-      setAqi("N/A");
-      return "N/A";
+      setAqi(null);
+      return null;
     }
   };
 
+  /* ---------------- AQI INFO ---------------- */
+
   const getAqiInfo = (value) => {
-    if (value === "N/A") return { text: "Unavailable", class: "aqi-na" };
-    if (value <= 50) return { text: "Good", class: "aqi-good" };
-    if (value <= 100) return { text: "Moderate", class: "aqi-moderate" };
+    if (!value) return { text: "Unavailable", class: "aqi-na" };
+    if (value <= 50) return { text: "Good 😊", class: "aqi-good" };
+    if (value <= 100) return { text: "Moderate 😐", class: "aqi-moderate" };
     if (value <= 150) return { text: "USG", class: "aqi-usg" };
-    if (value <= 200) return { text: "Unhealthy", class: "aqi-unhealthy" };
-    if (value <= 300) return { text: "Very Unhealthy", class: "aqi-very" };
-    return { text: "Hazardous", class: "aqi-hazard" };
+    if (value <= 200) return { text: "Unhealthy 😷", class: "aqi-unhealthy" };
+    if (value <= 300) return { text: "Very Unhealthy ☠️", class: "aqi-very" };
+    return { text: "Hazardous 🚨", class: "aqi-hazard" };
   };
 
   /* ---------------- AI SUGGESTIONS ---------------- */
 
-  const getAISuggestions = () => {
+  const getAISuggestions = (carbonValue) => {
     const tips = [];
 
-    if (carbon < 100) tips.push("🌱 Excellent! Low carbon footprint");
-    else if (carbon < 300) tips.push("⚡ Moderate footprint. Improve slightly");
+    if (carbonValue < 10)
+      tips.push("🌱 Excellent! Low carbon footprint");
+    else if (carbonValue < 30)
+      tips.push("⚡ Moderate footprint. Improve slightly");
     else tips.push("🚨 High footprint! Reduce emissions");
 
     if (travel === "Car") tips.push("🚗 Use public transport");
     if (Number(electricity) > 200) tips.push("💡 Save electricity");
     if (diet.includes("Non-veg")) tips.push("🥗 Reduce meat intake");
+
+    if (aqi && aqi > 150)
+      tips.push("⚠️ High AQI! Avoid outdoor activity");
 
     return tips;
   };
@@ -130,20 +145,15 @@ export default function Calculator() {
     setLoading(true);
 
     try {
-      const travelEmission =
-        travelFactors[travel] * Number(distance);
-
+      const travelEmission = travelFactors[travel] * Number(distance);
       const electricityEmission =
         (Number(electricity) / 30.44) * 0.82;
-
-      const dietEmission =
-        dietFactors[diet];
+      const dietEmission = dietFactors[diet];
 
       const total =
         travelEmission + electricityEmission + dietEmission;
 
       const finalCarbon = Number(total.toFixed(2));
-
       setCarbon(finalCarbon);
 
       const aqiValue = await fetchAQI(
@@ -151,25 +161,49 @@ export default function Calculator() {
         selectedCity.longitude
       );
 
-      await fetch(
+      console.log("Sending Data:", {
+        userId: user.uid,
+        transport: travelEmission,
+        electricity: electricityEmission,
+        food: dietEmission,
+        total: finalCarbon,
+        aqi: aqiValue,
+      });
+
+      const res = await fetch(
         "https://carbon-footprint-1-a5ae.onrender.com/api/emission/save",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             userId: user.uid,
-            city: selectedCity.name,
-            travel,
-            distance,
-            electricity,
-            diet,
+            transport: travelEmission,
+            electricity: electricityEmission,
+            food: dietEmission,
             total: finalCarbon,
             aqi: aqiValue,
           }),
         }
       );
 
-      setTimeout(() => navigate("/dashboard"), 2000);
+      const result = await res.json();
+
+      console.log("RESPONSE:", result);
+
+      if (result?.data) {
+        setPoints(result.data.points);
+        setCarbonSaved(result.data.carbonSaved);
+        setLevel(result.data.level);
+
+        // 🔥 Force backend sync
+        await fetch(
+          `https://carbon-footprint-1-a5ae.onrender.com/api/emission/stats/${user.uid}`
+        );
+
+      } else {
+        setError("Reward system failed. Try again.");
+      }
+
     } catch (err) {
       console.log(err);
       setError("Something went wrong");
@@ -179,9 +213,7 @@ export default function Calculator() {
   };
 
   const aqiInfo = aqi !== null ? getAqiInfo(aqi) : null;
-  const aiTips = carbon !== null ? getAISuggestions() : [];
-
-  /* ---------------- UI ---------------- */
+  const aiTips = carbon !== null ? getAISuggestions(carbon) : [];
 
   return (
     <section className="calc-wrapper">
@@ -189,9 +221,8 @@ export default function Calculator() {
 
         <h2>Carbon Footprint Calculator</h2>
 
-        {/* ✅ FIXED DROPDOWN */}
+        {/* CITY */}
         <div className="city-container">
-
           <input
             value={city}
             onChange={(e) => setCity(e.target.value)}
@@ -207,9 +238,9 @@ export default function Calculator() {
               ))}
             </ul>
           )}
-
         </div>
 
+        {/* INPUTS */}
         <select onChange={(e) => setTravel(e.target.value)}>
           <option value="">Travel mode</option>
           {Object.keys(travelFactors).map((t) => (
@@ -243,13 +274,14 @@ export default function Calculator() {
           {loading ? "Calculating..." : "Calculate"}
         </button>
 
+        {/* RESULT */}
         {carbon !== null && (
           <div className="result-card">
 
             <h3>Your Carbon Impact</h3>
 
             <p className="carbon-value">
-              {carbon.toFixed(2)} kg CO₂e / Day
+              {carbon} kg CO₂e / Day
             </p>
 
             {aqiInfo && (
@@ -258,7 +290,12 @@ export default function Calculator() {
               </p>
             )}
 
-            {/* AI */}
+            <div className="reward-box">
+              <p>⭐ Points Earned: {points}</p>
+              <p>🌱 Carbon Saved: {carbonSaved} kg</p>
+              <p>🏆 Level: {level}</p>
+            </div>
+
             <div className="ai-card">
               <h4>AI Suggestions</h4>
               <ul>
@@ -268,9 +305,12 @@ export default function Calculator() {
               </ul>
             </div>
 
-            <p className="redirect">
-              Redirecting to dashboard...
-            </p>
+            <button
+              className="redirect"
+              onClick={() => navigate("/dashboard")}
+            >
+              Go to Dashboard
+            </button>
 
           </div>
         )}
