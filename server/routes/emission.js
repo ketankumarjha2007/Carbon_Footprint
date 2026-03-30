@@ -3,8 +3,6 @@ import Emission from "../models/emissionModel.js";
 
 const router = express.Router();
 
-/* ================= SAVE EMISSION (FINAL FIXED) ================= */
-
 router.post("/save", async (req, res) => {
   try {
     let { userId, transport, electricity, food, total, aqi } = req.body;
@@ -43,8 +41,6 @@ router.post("/save", async (req, res) => {
     if (points > 150) level = "Earth Saver";
     else if (points > 80) level = "Green Warrior";
     else if (points > 30) level = "Eco Starter";
-
-    /* ---------------- 🔥 ALWAYS CREATE NEW ENTRY ---------------- */
 
     const newEmission = new Emission({
       userId,

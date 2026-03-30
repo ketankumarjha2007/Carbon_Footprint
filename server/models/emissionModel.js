@@ -5,7 +5,7 @@ const emissionSchema = new mongoose.Schema({
   userId: {
     type: String,
     required: true,
-    index: true // 🔥 faster queries
+    index: true 
   },
 
   transport: {
@@ -49,7 +49,7 @@ const emissionSchema = new mongoose.Schema({
   }
 
 }, {
-  timestamps: true // 🔥 THIS IS THE MOST IMPORTANT FIX
+  timestamps: true 
 });
 
 export default mongoose.model("Emission", emissionSchema);
