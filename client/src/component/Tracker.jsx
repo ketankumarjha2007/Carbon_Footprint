@@ -2,12 +2,28 @@ import { useEffect, useState } from "react";
 import { auth } from "../firebase";
 import "../styles/tracker.css";
 
+/* 🔥 CHART IMPORTS */
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  BarChart,
+  Bar
+} from "recharts";
+
 function Tracker(){
 
 const [records,setRecords] = useState([]);
 const [todayTotal,setTodayTotal] = useState(0);
 const [loading,setLoading] = useState(true);
 const [error,setError] = useState("");
+
+/* 🔥 NEW STATES FOR CHARTS */
+const [dailyData,setDailyData] = useState([]);
+const [monthlyData,setMonthlyData] = useState([]);
 
 useEffect(()=>{
 
@@ -48,6 +64,35 @@ try{
 
   setTodayTotal(total);
 
+  /* ================= DAILY CHART (LAST 7 DAYS) ================= */
+  const last7 = [...sorted].reverse().slice(-7);
+
+  const daily = last7.map(item => ({
+    date: new Date(item.createdAt).toLocaleDateString(),
+    carbon: item.total
+  }));
+
+  setDailyData(daily);
+
+  /* ================= MONTHLY CHART ================= */
+  const monthlyMap = {};
+
+  sorted.forEach(item=>{
+    const month = new Date(item.createdAt).toLocaleString("default",{
+      month:"short"
+    });
+
+    if(!monthlyMap[month]) monthlyMap[month] = 0;
+    monthlyMap[month] += item.total;
+  });
+
+  const monthly = Object.keys(monthlyMap).map(m => ({
+    month: m,
+    carbon: monthlyMap[m]
+  }));
+
+  setMonthlyData(monthly);
+
 }catch(err){
   setError("Failed to load data");
 }
@@ -58,6 +103,10 @@ finally{
 };
 
 fetchData();
+
+/* 🔁 OPTIONAL REAL-TIME REFRESH */
+const interval = setInterval(fetchData,5000);
+return () => clearInterval(interval);
 
 },[]);
 
@@ -94,13 +143,45 @@ return(
 
 {/* SUMMARY */}
 <div className="summary-card">
-
 <h3>Today's Carbon</h3>
-
 <p>
 {todayTotal === 0 ? "0.0" : todayTotal.toFixed(2)} kg CO₂
 </p>
+</div>
 
+
+{/* 🔥 DAILY CHART */}
+<div className="chart-box">
+<h3>Last 7 Days</h3>
+
+<ResponsiveContainer width="100%" height={250}>
+<LineChart data={dailyData}>
+  <XAxis dataKey="date" stroke="#94a3b8" />
+  <YAxis stroke="#94a3b8" />
+  <Tooltip />
+  <Line
+    type="monotone"
+    dataKey="carbon"
+    stroke="#22c55e"
+    strokeWidth={3}
+  />
+</LineChart>
+</ResponsiveContainer>
+</div>
+
+
+{/* 🔥 MONTHLY CHART */}
+<div className="chart-box">
+<h3>Monthly Emissions</h3>
+
+<ResponsiveContainer width="100%" height={250}>
+<BarChart data={monthlyData}>
+  <XAxis dataKey="month" stroke="#94a3b8" />
+  <YAxis stroke="#94a3b8" />
+  <Tooltip />
+  <Bar dataKey="carbon" fill="#3b82f6" />
+</BarChart>
+</ResponsiveContainer>
 </div>
 
 

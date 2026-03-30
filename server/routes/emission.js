@@ -3,13 +3,21 @@ import Emission from "../models/emissionModel.js";
 
 const router = express.Router();
 
-/* ---------------- SAVE / UPDATE EMISSION + REWARDS ---------------- */
+/* ================= SAVE EMISSION (FINAL FIXED) ================= */
 
 router.post("/save", async (req, res) => {
   try {
     let { userId, transport, electricity, food, total, aqi } = req.body;
 
-    // Convert values
+    /* ---------------- VALIDATION ---------------- */
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID required"
+      });
+    }
+
+    /* ---------------- SAFE NUMBER CONVERSION ---------------- */
     transport = Number(transport) || 0;
     electricity = Number(electricity) || 0;
     food = Number(food) || 0;
@@ -18,21 +26,14 @@ router.post("/save", async (req, res) => {
     aqi = Number(aqi);
     if (isNaN(aqi)) aqi = null;
 
-    if (!userId) {
-      return res.status(400).json({
-        success: false,
-        message: "User ID required"
-      });
-    }
-
-    /* ---------------- 🔥 REWARD LOGIC ---------------- */
+    /* ---------------- REWARD LOGIC ---------------- */
 
     const avg = 20;
 
     let carbonSaved = total < avg ? (avg - total) : 0;
     let points = Math.round(carbonSaved * 10);
 
-    // minimum reward
+    // minimum reward safeguard
     if (points <= 0) {
       points = 5;
       carbonSaved = 1;
@@ -43,45 +44,23 @@ router.post("/save", async (req, res) => {
     else if (points > 80) level = "Green Warrior";
     else if (points > 30) level = "Eco Starter";
 
-    /* ---------------- 🔥 PREVENT MULTIPLE ENTRIES PER DAY ---------------- */
+    /* ---------------- 🔥 ALWAYS CREATE NEW ENTRY ---------------- */
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    let existing = await Emission.findOne({
+    const newEmission = new Emission({
       userId,
-      createdAt: { $gte: today }
+      transport,
+      electricity,
+      food,
+      total,
+      aqi,
+      carbonSaved,
+      points,
+      level
     });
 
-    if (existing) {
-      // UPDATE existing entry
-      existing.transport = transport;
-      existing.electricity = electricity;
-      existing.food = food;
-      existing.total = total;
-      existing.aqi = aqi;
-      existing.carbonSaved = carbonSaved;
-      existing.points = points;
-      existing.level = level;
+    await newEmission.save();
 
-      await existing.save();
-
-    } else {
-      // CREATE new entry
-      const newEmission = new Emission({
-        userId,
-        transport,
-        electricity,
-        food,
-        total,
-        aqi,
-        carbonSaved,
-        points,
-        level
-      });
-
-      await newEmission.save();
-    }
+    /* ---------------- RESPONSE ---------------- */
 
     res.status(201).json({
       success: true,
@@ -101,7 +80,7 @@ router.post("/save", async (req, res) => {
   }
 });
 
-/* ---------------- 🔥 USER TOTAL STATS ---------------- */
+/* ================= USER TOTAL STATS ================= */
 
 router.get("/stats/:userId", async (req, res) => {
   try {
@@ -136,7 +115,7 @@ router.get("/stats/:userId", async (req, res) => {
   }
 });
 
-/* ---------------- GET USER EMISSIONS ---------------- */
+/* ================= GET USER EMISSIONS ================= */
 
 router.get("/:userId", async (req, res) => {
   try {

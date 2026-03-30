@@ -194,8 +194,6 @@ export default function Calculator() {
         setPoints(result.data.points);
         setCarbonSaved(result.data.carbonSaved);
         setLevel(result.data.level);
-
-        // 🔥 Force backend sync
         await fetch(
           `https://carbon-footprint-1-a5ae.onrender.com/api/emission/stats/${user.uid}`
         );
