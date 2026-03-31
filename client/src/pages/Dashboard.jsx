@@ -139,7 +139,7 @@ function Dashboard() {
 
         <div className="card reward-card">
           <h2>🌱 Carbon Saved</h2>
-          <p>{carbonSaved} kg</p>
+          <p>{Number(carbonSaved).toFixed(2)} kg</p>
         </div>
 
         <div className="card reward-card level-card">
