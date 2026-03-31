@@ -14,6 +14,7 @@ function Dashboard() {
   const [points, setPoints] = useState(0);
   const [carbonSaved, setCarbonSaved] = useState(0);
   const [level, setLevel] = useState("Beginner");
+  const [aqiValue, setAqiValue] = useState(0);
 
   useEffect(() => {
 
@@ -29,20 +30,28 @@ function Dashboard() {
 
       setUserName(name);
 
-      /* ---------------- FETCH EMISSION DATA ---------------- */
+      /* ---------------- FETCH EMISSION + AQI ---------------- */
 
       fetch(`https://carbon-footprint-1-a5ae.onrender.com/api/emission/${user.uid}`)
         .then((res) => res.json())
         .then((data) => {
 
-          if (!Array.isArray(data)) return;
+          if (!Array.isArray(data) || data.length === 0) return;
 
           let total = 0;
           let month = 0;
 
           const currentMonth = new Date().getMonth();
 
-          data.forEach((item) => {
+          // 🔥 sort latest first
+          const sorted = data.sort(
+            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+          );
+
+          const latest = sorted[0];
+          setAqiValue(latest.aqi || 0);
+
+          sorted.forEach((item) => {
 
             const emissionValue = Number(item.total) || 0;
             total += emissionValue;
@@ -59,6 +68,9 @@ function Dashboard() {
           setTotalCarbon(total.toFixed(2));
           setMonthCarbon(month.toFixed(2));
 
+        })
+        .catch((err) => {
+          console.log("Error fetching emission:", err);
         });
 
       fetch(`https://carbon-footprint-1-a5ae.onrender.com/api/emission/stats/${user.uid}`)
@@ -81,6 +93,13 @@ function Dashboard() {
     return () => unsubscribe();
 
   }, []);
+
+  const getAqiStatus = (aqi) => {
+    if (aqi <= 50) return "Good 🟢";
+    if (aqi <= 100) return "Moderate 🟡";
+    if (aqi <= 200) return "Poor 🟠";
+    return "Hazardous 🔴";
+  };
 
   return (
 
@@ -106,6 +125,11 @@ function Dashboard() {
         <div className="card">
           <h2>Goal</h2>
           <p>Reduce 20%</p>
+        </div>
+
+        <div className="card">
+          <h2>Last AQI</h2>
+          <p>{aqiValue} - {getAqiStatus(aqiValue)}</p>
         </div>
 
         <div className="card reward-card">
