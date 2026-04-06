@@ -2,60 +2,176 @@ import "../styles/Home.css";
 import { Link } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import videoFile from "../assets/video.mp4";
-
+import { useNavigate } from "react-router-dom";
 function Home() {
-
+  const navigate = useNavigate();
   const canvasRef = useRef(null);
   const glowRef = useRef(null);
+  const inputRef = useRef(null);
+  const terminalRef = useRef(null);
 
   const [lines, setLines] = useState([]);
   const [currentText, setCurrentText] = useState("");
   const [index, setIndex] = useState(0);
 
+  const [history, setHistory] = useState([]);
+  const [cmdIndex, setCmdIndex] = useState(-1);
+
+  const commands = ["help", "about", "features", "clear", "hack"];
+
   const bootText = [
     "Launching Carbon Intelligence Engine...",
     "Syncing with atmosphere APIs...",
-    "Calibrating emission metrics...",
-    "Deploying smart insights...",
-    "CarbonTrack is online ✔"
+    "Welcome to CarbonTrack ",
+    "Type 'help' for commands"
   ];
+
+  /* TYPEWRITER */
   const typeLine = (text) => {
     return new Promise((resolve) => {
       let i = 0;
       setCurrentText("");
 
       const interval = setInterval(() => {
-        setCurrentText(prev => prev + text[i]);
+        setCurrentText((prev) => prev + text[i]);
         i++;
 
         if (i >= text.length) {
           clearInterval(interval);
+          setLines((prev) => [...prev, "> " + text]);
+          setCurrentText("");
           resolve();
         }
-      }, 25);
+      }, 20);
     });
   };
 
-  /* TERMINAL FLOW */
+  /* BOOT FLOW */
   useEffect(() => {
     if (index < bootText.length) {
-
       const run = async () => {
-        const line = bootText[index];
-
-        await typeLine(line);
-
-        setLines(prev => [...prev, line]);
-        setCurrentText("");
-
-        setTimeout(() => {
-          setIndex(prev => prev + 1);
-        }, 300);
+        await typeLine(bootText[index]);
+        setTimeout(() => setIndex((p) => p + 1), 300);
       };
-
       run();
     }
   }, [index]);
+
+  /* COMMAND SYSTEM */
+  const runCommand = (cmd) => {
+    let output = [];
+
+    switch (cmd) {
+      case "help":
+        output = [
+          "Available Commands:",
+          "about → platform info",
+          "features → modules",
+          "hack → simulate attack",
+          "clear → reset",
+          "tracker → Go to Login"
+        ];
+        break;
+
+      case "about":
+        output = [
+          "CarbonTrack",
+          "Give Real-Time Carbon and AQI Insights",
+          "Built for real-time AQI tracking"
+        ];
+        break;
+      case "tracker":
+        output = [
+          "Redirecting to Login..."
+        ];
+        setTimeout(() => navigate("/login"), 1000);
+        break;
+
+      case "features":
+        output = [
+          "Modules:",
+          "• Carbon Tracking",
+          "• AQI Monitoring",
+          "• Smart AI suggestions"
+        ];
+        break;
+
+      case "hack":
+        fakeHack();
+        return;
+
+      case "clear":
+        setLines([]);
+        return;
+
+      default:
+        output = ["Command not found. Type 'help'"];
+    }
+
+    setLines((prev) => [...prev, "> " + cmd]);
+
+    output.forEach((line, i) => {
+      setTimeout(() => typeLine(line), i * 300);
+    });
+  };
+  const fakeHack = () => {
+    const steps = [
+      "Bypassing firewall...",
+      "Injecting payload...",
+      "Decrypting system...",
+      "Accessing secure node...",
+      "Access Denied "
+    ];
+
+    setLines((prev) => [...prev, "> hack"]);
+
+    steps.forEach((step, i) => {
+      setTimeout(() => typeLine(step), i * 500);
+    });
+  };
+  const handleKey = (e) => {
+    if (e.key === "Enter") {
+      const cmd = e.target.value.trim().toLowerCase();
+      if (!cmd) return;
+
+      setHistory((prev) => [...prev, cmd]);
+      setCmdIndex(-1);
+
+      runCommand(cmd);
+      e.target.value = "";
+    }
+
+    if (e.key === "ArrowUp") {
+      if (history.length === 0) return;
+      const newIndex =
+        cmdIndex < history.length - 1 ? cmdIndex + 1 : cmdIndex;
+      setCmdIndex(newIndex);
+      e.target.value = history[history.length - 1 - newIndex];
+    }
+
+    if (e.key === "ArrowDown") {
+      if (cmdIndex <= 0) {
+        setCmdIndex(-1);
+        e.target.value = "";
+      } else {
+        const newIndex = cmdIndex - 1;
+        setCmdIndex(newIndex);
+        e.target.value = history[history.length - 1 - newIndex];
+      }
+    }
+    if (e.key === "Tab") {
+      e.preventDefault();
+      const val = e.target.value;
+      const match = commands.find((c) => c.startsWith(val));
+      if (match) e.target.value = match;
+    }
+  };
+  useEffect(() => {
+    if (terminalRef.current) {
+      terminalRef.current.scrollTop =
+        terminalRef.current.scrollHeight;
+    }
+  }, [lines, currentText]);
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
@@ -73,10 +189,9 @@ function Home() {
 
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-
       ctx.fillStyle = "rgba(34,211,238,0.25)";
 
-      particles.forEach(p => {
+      particles.forEach((p) => {
         p.x += p.dx;
         p.y += p.dy;
 
@@ -93,39 +208,16 @@ function Home() {
 
     animate();
   }, []);
+
+  /* CURSOR GLOW */
   useEffect(() => {
     const move = (e) => {
       if (glowRef.current) {
-        glowRef.current.style.transform =
-          `translate(${e.clientX}px, ${e.clientY}px)`;
+        glowRef.current.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
       }
     };
-
     window.addEventListener("mousemove", move);
     return () => window.removeEventListener("mousemove", move);
-  }, []);
-  useEffect(() => {
-    const cards = document.querySelectorAll(".feature-card");
-
-    const handleMove = (card, e) => {
-      const rect = card.getBoundingClientRect();
-      card.style.setProperty("--x", `${e.clientX - rect.left}px`);
-      card.style.setProperty("--y", `${e.clientY - rect.top}px`);
-    };
-
-    cards.forEach(card => {
-      const listener = (e) => handleMove(card, e);
-      card.addEventListener("mousemove", listener);
-      card._listener = listener;
-    });
-
-    return () => {
-      cards.forEach(card => {
-        if (card._listener) {
-          card.removeEventListener("mousemove", card._listener);
-        }
-      });
-    };
   }, []);
 
   return (
@@ -133,9 +225,9 @@ function Home() {
       <div className="aurora"></div>
       <canvas ref={canvasRef} className="particles"></canvas>
       <div ref={glowRef} className="glow"></div>
+
       <section className="hero">
         <div className="hero-content">
-
           <h1>
             Carbon<span>Track</span>
           </h1>
@@ -144,18 +236,27 @@ function Home() {
             Smart carbon footprint and AQI monitoring platform
             built for a sustainable future.
           </p>
-          <div className="terminal">
 
+          <div
+            className="terminal"
+            ref={terminalRef}
+            onClick={() => inputRef.current.focus()}
+          >
             {lines.map((l, i) => (
-              <p key={i}>{"> " + l}</p>
+              <p key={i}>{l}</p>
             ))}
 
-            {currentText && (
-              <p>{"> " + currentText}</p>
-            )}
+            {currentText && <p>{currentText}</p>}
 
-            <span className="cursor"></span>
-
+            <div className="input-line">
+              <span>{">"}</span>
+              <input
+                ref={inputRef}
+                onKeyDown={handleKey}
+                autoFocus
+                spellCheck="false"
+              />
+            </div>
           </div>
 
           <div className="cta">
@@ -166,9 +267,9 @@ function Home() {
               Learn More
             </Link>
           </div>
-
         </div>
       </section>
+
       <section className="features">
         {[
           {
@@ -192,6 +293,7 @@ function Home() {
           </div>
         ))}
       </section>
+
       <section className="video-section">
         <div className="video-wrapper">
           <video autoPlay muted loop playsInline>
@@ -199,7 +301,6 @@ function Home() {
           </video>
         </div>
       </section>
-
     </div>
   );
 }
