@@ -17,7 +17,7 @@ function Home() {
   const [history, setHistory] = useState([]);
   const [cmdIndex, setCmdIndex] = useState(-1);
 
-  const commands = ["help", "about", "features", "clear", "hack"];
+  const commands = ["help", "about", "features", "clear", "hack","tracker", "donate"];
 
   const bootText = [
     "Launching Carbon Intelligence Engine...",
@@ -69,6 +69,7 @@ function Home() {
           "features → modules",
           "hack → simulate attack",
           "clear → reset",
+          "donate → Support Environment",
           "tracker → Go to Login"
         ];
         break;
@@ -86,13 +87,20 @@ function Home() {
         ];
         setTimeout(() => navigate("/login"), 1000);
         break;
+      case "donate":
+        output = [
+          "Redirecting to Donation Page..."
+        ];
+        setTimeout(() => navigate("/donate"), 1000);
+        break;
 
       case "features":
         output = [
           "Modules:",
           "• Carbon Tracking",
           "• AQI Monitoring",
-          "• Smart AI suggestions"
+          "• Smart AI suggestions",
+          "• Donation Features for Planting Trees"
         ];
         break;
 
