@@ -174,8 +174,8 @@ npm run dev
 
 # 🌐 Deployment
 
-Frontend hosted on **Vercel**
-Backend hosted on **Render**
+* Frontend hosted on **Vercel**
+* Backend hosted on **Render**
 
 ---
 
