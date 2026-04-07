@@ -1,6 +1,6 @@
 # CarbonTrack 🌍⚡
 
-**Carbon Footprint Tracking Web Application**
+**Carbon Footprint Tracking and AQI Monitoring Web Application**
 
 CarbonTrack is a full-stack web application that helps users monitor their **daily carbon emissions** and understand their environmental impact.
 
@@ -8,7 +8,9 @@ The platform allows users to calculate their carbon footprint and track emission
 
 It also tells live **AQI** of selected country or city and also give us the **AQI level** of that place 
 
-The project is built using **React, Node.js, Express, MongoDB, and Firebase**, with deployment on **Vercel and Railway**.
+There is also a **Donate** Feature where You can support environmnet by donating for planting trees.
+
+The project is built using **React, Node.js, Express, MongoDB, and Firebase**, with deployment on **Vercel and Render**.
 
 ---
 
@@ -34,6 +36,8 @@ The tracker page records carbon emissions **every time a calculation is made**.
 It displays:
 
 * **Day-wise emission data**
+* **Month-wise emission Graph**
+* **Last 7 Days emission Graph**
 * **Time-wise emission entries**
 * Historical records stored in the database
 
@@ -82,7 +86,7 @@ All emission data is stored in **MongoDB**, allowing users to view their emissio
 ### Deployment
 
 * Vercel (Frontend hosting)
-* Railway (Backend hosting)
+* Render (Backend hosting)
 
 ---
 
@@ -171,7 +175,7 @@ npm run dev
 # 🌐 Deployment
 
 Frontend hosted on **Vercel**
-Backend hosted on **Railway**
+Backend hosted on **Render**
 
 ---
 
