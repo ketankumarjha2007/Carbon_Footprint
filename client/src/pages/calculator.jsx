@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { auth } from "../firebase";
+import { db } from "../firebase"; 
+import { ref, onValue } from "firebase/database";
 import "../styles/calculator.css";
 import { useNavigate } from "react-router-dom";
 
 /* ---------------- FACTORS ---------------- */
-
+console.log("UID:", auth.currentUser?.uid);
 const travelFactors = {
   Car: 0.21,
   Bike: 0.05,
@@ -45,7 +47,23 @@ export default function Calculator() {
   const [carbonSaved, setCarbonSaved] = useState(0);
   const [level, setLevel] = useState("Beginner");
 
-  /* ---------------- CITY SEARCH ---------------- */
+  useEffect(() => {
+    const unsubscribeAuth = auth.onAuthStateChanged((user) => {
+      if (!user) return;
+
+      const unitsRef = ref(db, "electricity/" + user.uid + "/units");
+
+      onValue(unitsRef, (snapshot) => {
+        const value = snapshot.val();
+
+        if (value !== null) {
+          setElectricity(value.toString());
+        }
+      });
+    });
+
+    return () => unsubscribeAuth();
+  }, []);
 
   useEffect(() => {
     if (city.length < 2) {
@@ -161,15 +179,6 @@ export default function Calculator() {
         selectedCity.longitude
       );
 
-      console.log("Sending Data:", {
-        userId: user.uid,
-        transport: travelEmission,
-        electricity: electricityEmission,
-        food: dietEmission,
-        total: finalCarbon,
-        aqi: aqiValue,
-      });
-
       const res = await fetch(
         "https://carbon-footprint-1-a5ae.onrender.com/api/emission/save",
         {
@@ -188,16 +197,14 @@ export default function Calculator() {
 
       const result = await res.json();
 
-      console.log("RESPONSE:", result);
-
       if (result?.data) {
         setPoints(result.data.points);
         setCarbonSaved(result.data.carbonSaved);
         setLevel(result.data.level);
+
         await fetch(
           `https://carbon-footprint-1-a5ae.onrender.com/api/emission/stats/${user.uid}`
         );
-
       } else {
         setError("Reward system failed. Try again.");
       }
@@ -219,7 +226,6 @@ export default function Calculator() {
 
         <h2>Carbon Footprint Calculator</h2>
 
-        {/* CITY */}
         <div className="city-container">
           <input
             value={city}
@@ -238,7 +244,6 @@ export default function Calculator() {
           )}
         </div>
 
-        {/* INPUTS */}
         <select onChange={(e) => setTravel(e.target.value)}>
           <option value="">Travel mode</option>
           {Object.keys(travelFactors).map((t) => (
@@ -272,10 +277,8 @@ export default function Calculator() {
           {loading ? "Calculating..." : "Calculate"}
         </button>
 
-        {/* RESULT */}
         {carbon !== null && (
           <div className="result-card">
-
             <h3>Your Carbon Impact</h3>
 
             <p className="carbon-value">
@@ -309,7 +312,6 @@ export default function Calculator() {
             >
               Go to Dashboard
             </button>
-
           </div>
         )}
 
