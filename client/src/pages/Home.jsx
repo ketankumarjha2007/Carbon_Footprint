@@ -1,185 +1,13 @@
 import "../styles/Home.css";
 import { Link } from "react-router-dom";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import videoFile from "../assets/video.mp4";
-import { useNavigate } from "react-router-dom";
+
 function Home() {
-  const navigate = useNavigate();
   const canvasRef = useRef(null);
   const glowRef = useRef(null);
-  const inputRef = useRef(null);
-  const terminalRef = useRef(null);
 
-  const [lines, setLines] = useState([]);
-  const [currentText, setCurrentText] = useState("");
-  const [index, setIndex] = useState(0);
-
-  const [history, setHistory] = useState([]);
-  const [cmdIndex, setCmdIndex] = useState(-1);
-
-  const commands = ["help", "about", "features", "clear", "hack","tracker", "donate"];
-
-  const bootText = [
-    "Launching Carbon Intelligence Engine...",
-    "Syncing with atmosphere APIs...",
-    "Welcome to CarbonTrack ",
-    "Type 'help' for commands"
-  ];
-
-  /* TYPEWRITER */
-  const typeLine = (text) => {
-    return new Promise((resolve) => {
-      let i = 0;
-      setCurrentText("");
-
-      const interval = setInterval(() => {
-        setCurrentText((prev) => prev + text[i]);
-        i++;
-
-        if (i >= text.length) {
-          clearInterval(interval);
-          setLines((prev) => [...prev, "> " + text]);
-          setCurrentText("");
-          resolve();
-        }
-      }, 20);
-    });
-  };
-
-  /* BOOT FLOW */
-  useEffect(() => {
-    if (index < bootText.length) {
-      const run = async () => {
-        await typeLine(bootText[index]);
-        setTimeout(() => setIndex((p) => p + 1), 300);
-      };
-      run();
-    }
-  }, [index]);
-
-  /* COMMAND SYSTEM */
-  const runCommand = (cmd) => {
-    let output = [];
-
-    switch (cmd) {
-      case "help":
-        output = [
-          "Available Commands:",
-          "about → platform info",
-          "features → modules",
-          "hack → simulate attack",
-          "clear → reset",
-          "donate → Support Environment",
-          "tracker → Go to Login"
-        ];
-        break;
-
-      case "about":
-        output = [
-          "CarbonTrack",
-          "Give Real-Time Carbon and AQI Insights",
-          "Built for real-time AQI tracking"
-        ];
-        break;
-      case "tracker":
-        output = [
-          "Redirecting to Login..."
-        ];
-        setTimeout(() => navigate("/login"), 1000);
-        break;
-      case "donate":
-        output = [
-          "Redirecting to Donation Page..."
-        ];
-        setTimeout(() => navigate("/donate"), 1000);
-        break;
-
-      case "features":
-        output = [
-          "Modules:",
-          "• Carbon Tracking",
-          "• AQI Monitoring",
-          "• Smart AI suggestions",
-          "• Donation Features for Planting Trees"
-        ];
-        break;
-
-      case "hack":
-        fakeHack();
-        return;
-
-      case "clear":
-        setLines([]);
-        return;
-
-      default:
-        output = ["Command not found. Type 'help'"];
-    }
-
-    setLines((prev) => [...prev, "> " + cmd]);
-
-    output.forEach((line, i) => {
-      setTimeout(() => typeLine(line), i * 300);
-    });
-  };
-  const fakeHack = () => {
-    const steps = [
-      "Bypassing firewall...",
-      "Injecting payload...",
-      "Decrypting system...",
-      "Accessing secure node...",
-      "Access Denied "
-    ];
-
-    setLines((prev) => [...prev, "> hack"]);
-
-    steps.forEach((step, i) => {
-      setTimeout(() => typeLine(step), i * 500);
-    });
-  };
-  const handleKey = (e) => {
-    if (e.key === "Enter") {
-      const cmd = e.target.value.trim().toLowerCase();
-      if (!cmd) return;
-
-      setHistory((prev) => [...prev, cmd]);
-      setCmdIndex(-1);
-
-      runCommand(cmd);
-      e.target.value = "";
-    }
-
-    if (e.key === "ArrowUp") {
-      if (history.length === 0) return;
-      const newIndex =
-        cmdIndex < history.length - 1 ? cmdIndex + 1 : cmdIndex;
-      setCmdIndex(newIndex);
-      e.target.value = history[history.length - 1 - newIndex];
-    }
-
-    if (e.key === "ArrowDown") {
-      if (cmdIndex <= 0) {
-        setCmdIndex(-1);
-        e.target.value = "";
-      } else {
-        const newIndex = cmdIndex - 1;
-        setCmdIndex(newIndex);
-        e.target.value = history[history.length - 1 - newIndex];
-      }
-    }
-    if (e.key === "Tab") {
-      e.preventDefault();
-      const val = e.target.value;
-      const match = commands.find((c) => c.startsWith(val));
-      if (match) e.target.value = match;
-    }
-  };
-  useEffect(() => {
-    if (terminalRef.current) {
-      terminalRef.current.scrollTop =
-        terminalRef.current.scrollHeight;
-    }
-  }, [lines, currentText]);
+  /* PARTICLES */
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
@@ -187,19 +15,18 @@ function Home() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    let particles = Array.from({ length: 50 }, () => ({
+    let particles = Array.from({ length: 70 }, () => ({
       x: Math.random() * canvas.width,
       y: Math.random() * canvas.height,
-      r: Math.random() * 1.5,
-      dx: (Math.random() - 0.5) * 0.5,
-      dy: (Math.random() - 0.5) * 0.5
+      r: Math.random() * 2,
+      dx: (Math.random() - 0.5) * 0.35,
+      dy: (Math.random() - 0.5) * 0.35
     }));
 
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = "rgba(34,211,238,0.25)";
 
-      particles.forEach((p) => {
+      particles.forEach((p, i) => {
         p.x += p.dx;
         p.y += p.dy;
 
@@ -208,71 +35,132 @@ function Home() {
 
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(114,255,177,0.35)";
         ctx.fill();
+
+        for (let j = i + 1; j < particles.length; j++) {
+          const p2 = particles[j];
+          const dist = Math.hypot(p.x - p2.x, p.y - p2.y);
+
+          if (dist < 120) {
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.strokeStyle = `rgba(114,255,177,${0.08 - dist / 1500})`;
+            ctx.stroke();
+          }
+        }
       });
 
       requestAnimationFrame(animate);
     };
 
     animate();
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+
+    window.addEventListener("resize", resize);
+
+    return () => window.removeEventListener("resize", resize);
   }, []);
 
   /* CURSOR GLOW */
   useEffect(() => {
     const move = (e) => {
       if (glowRef.current) {
-        glowRef.current.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
+        glowRef.current.style.transform = `translate(${e.clientX - 160}px, ${e.clientY - 160}px)`;
       }
     };
+
     window.addEventListener("mousemove", move);
+
     return () => window.removeEventListener("mousemove", move);
   }, []);
 
   return (
     <div className="home">
-      <div className="aurora"></div>
+      <div className="gradient-bg"></div>
+
       <canvas ref={canvasRef} className="particles"></canvas>
-      <div ref={glowRef} className="glow"></div>
+
+      <div ref={glowRef} className="cursor-glow"></div>
 
       <section className="hero">
         <div className="hero-content">
+          <div className="top-badge">
+            Monitor Your Carbon Footprint & Air Quality in Real-Time
+          </div>
+
           <h1>
-            Carbon<span>Track</span>
+            Build A <span>Greener</span>
+            <br />
+            Future With Data
           </h1>
 
           <p>
-            Smart carbon footprint and AQI monitoring platform
-            built for a sustainable future.
+            CarbonTrack delivers intelligent carbon analytics,
+            AQI monitoring, and sustainability insights through
+            a powerful real-time environmental intelligence system.
           </p>
 
-          <div
-            className="terminal"
-            ref={terminalRef}
-            onClick={() => inputRef.current.focus()}
-          >
-            {lines.map((l, i) => (
-              <p key={i}>{l}</p>
-            ))}
+          <div className="hero-grid">
+            <div className="glass-card main-card">
+              <div className="card-top">
+                <span className="live-dot"></span>
+                LIVE ENVIRONMENT STATUS
+              </div>
 
-            {currentText && <p>{currentText}</p>}
+              <h2>Healthy Air Quality</h2>
 
-            <div className="input-line">
-              <span>{">"}</span>
-              <input
-                ref={inputRef}
-                onKeyDown={handleKey}
-                autoFocus
-                spellCheck="false"
-              />
+              <div className="aqi-value">
+                43 <span>AQI</span>
+              </div>
+
+              <div className="mini-stats">
+                <div>
+                  <h3>98%</h3>
+                  <p>Prediction Accuracy</p>
+                </div>
+
+                <div>
+                  <h3>24/7</h3>
+                  <p>Monitoring</p>
+                </div>
+
+                <div>
+                  <h3>AI</h3>
+                  <p>Smart Insights</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="side-cards">
+              <div className="glass-card small-card">
+                <h3>Carbon Tracking</h3>
+                <p>
+                  Measure and reduce emissions with precision.
+                </p>
+              </div>
+
+              <div className="glass-card small-card">
+                <h3>Smart Recommendations</h3>
+                <p>
+                  AI-generated eco suggestions for sustainability.
+                </p>
+              </div>
             </div>
           </div>
 
           <div className="cta">
             <Link to="/login" className="btn primary">
-              Get Started
+              Launch Platform
             </Link>
+
             <Link to="/about" className="btn secondary">
-              Learn More
+              Explore More
             </Link>
           </div>
         </div>
@@ -281,21 +169,24 @@ function Home() {
       <section className="features">
         {[
           {
-            title: "Carbon Tracking",
-            desc: "Track emissions and understand your impact."
+            title: "Real-Time Carbon Analytics",
+            desc: "Track emissions instantly with advanced monitoring systems."
           },
           {
-            title: "AQI Monitoring",
-            desc: "Real-time air quality intelligence."
+            title: "Environmental Intelligence",
+            desc: "Powerful AI insights designed for sustainable decisions."
           },
           {
-            title: "Smart Insights",
-            desc: "AI-powered sustainability suggestions."
+            title: "Smart AQI Monitoring",
+            desc: "Live air quality data with predictive environmental analysis."
           }
         ].map((item, i) => (
           <div className="feature-card" key={i}>
-            <div className="inner">
+            <div className="feature-inner">
+              <div className="feature-line"></div>
+
               <h3>{item.title}</h3>
+
               <p>{item.desc}</p>
             </div>
           </div>

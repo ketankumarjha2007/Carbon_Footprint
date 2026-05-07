@@ -64,7 +64,7 @@ function Navbar() {
             <Link className={isActive("/about")} to="/about">About</Link>
             <Link className={isActive("/donate")} to="/donate">Donate</Link>
             <Link className={isActive("/contact")} to="/contact">Contact</Link>
-            <Link to="/login" className="login-btn">Login</Link>
+            <Link to="/login" className="login-btn">Sign In</Link>
           </>
         )}
 
