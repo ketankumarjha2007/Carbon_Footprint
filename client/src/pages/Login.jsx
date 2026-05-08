@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
 import { auth, provider } from "../firebase";
 import {
   signInWithPopup,
@@ -10,6 +9,7 @@ import {
 } from "firebase/auth";
 
 import "../styles/login.css";
+import { Eye, EyeOff } from "lucide-react";
 
 function Login() {
 
@@ -73,8 +73,6 @@ function Login() {
   return(
 
     <div className="login-wrapper">
-
-      {/* 🌌 PARTICLES */}
       <div className="particles">
         <span></span><span></span><span></span><span></span><span></span>
         <span></span><span></span><span></span><span></span>
@@ -108,7 +106,7 @@ function Login() {
             className="toggle"
             onClick={()=>setShowPassword(!showPassword)}
           >
-            {showPassword ? "🙈" : "👁️"}
+            {showPassword ? <EyeOff /> : <Eye />}
           </span>
         </div>
 
