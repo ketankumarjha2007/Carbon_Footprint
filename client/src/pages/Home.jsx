@@ -1,10 +1,12 @@
 import "../styles/Home.css";
 import { Link } from "react-router-dom";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import videoFile from "../assets/video.mp4";
 
 function Home() {
   const canvasRef = useRef(null);
+  const [aqi, setAqi] = useState(null);
+  const [aqiStatus, setAqiStatus] = useState("");
   const glowRef = useRef(null);
 
   /* PARTICLES */
@@ -80,6 +82,47 @@ function Home() {
     return () => window.removeEventListener("mousemove", move);
   }, []);
 
+  useEffect(() => {
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+
+        try {
+
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+
+          const res = await fetch(
+            `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&hourly=us_aqi`
+          );
+
+          const data = await res.json();
+
+          const currentIndex = data.hourly.time.length - 1;
+          const value = data.hourly.us_aqi[currentIndex];
+
+          setAqi(value);
+
+          if (value <= 50)
+            setAqiStatus("Healthy Air Quality 😊");
+
+          else if (value <= 100)
+            setAqiStatus("Moderate Air Quality 😐");
+
+          else if (value <= 150)
+            setAqiStatus("Unhealthy for Sensitive Groups");
+
+          else
+            setAqiStatus("Poor Air Quality 😷");
+
+        } catch (err) {
+          console.log(err);
+        }
+      }
+    );
+
+  }, []);
+
   return (
     <div className="home">
       <div className="gradient-bg"></div>
@@ -113,10 +156,10 @@ function Home() {
                 LIVE ENVIRONMENT STATUS
               </div>
 
-              <h2>Healthy Air Quality</h2>
+              <h2>{aqiStatus || "Loading AQI..."}</h2>
 
               <div className="aqi-value">
-                43 <span>AQI</span>
+                {aqi !== null ? aqi : "--"} <span>AQI</span>
               </div>
 
               <div className="mini-stats">
