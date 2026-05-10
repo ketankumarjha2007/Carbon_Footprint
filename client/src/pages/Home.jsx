@@ -85,6 +85,7 @@ function Home() {
   useEffect(() => {
 
     navigator.geolocation.getCurrentPosition(
+
       async (position) => {
 
         try {
@@ -98,27 +99,56 @@ function Home() {
 
           const data = await res.json();
 
-          const currentIndex = data.hourly.time.length - 1;
-          const value = data.hourly.us_aqi[currentIndex];
+          console.log(data);
 
-          setAqi(value);
+          const aqiArray = data?.hourly?.us_aqi || [];
 
-          if (value <= 50)
+          const validAqi = aqiArray.filter(
+            (v) => v !== null && v !== undefined
+          );
+
+          if (validAqi.length === 0) {
+            setAqiStatus("AQI Unavailable");
+            return;
+          }
+
+          const latestAqi =
+            validAqi[validAqi.length - 1];
+
+          console.log("Latest AQI:", latestAqi);
+
+          setAqi(latestAqi);
+
+          if (latestAqi <= 50)
             setAqiStatus("Healthy Air Quality 😊");
 
-          else if (value <= 100)
+          else if (latestAqi <= 100)
             setAqiStatus("Moderate Air Quality 😐");
 
-          else if (value <= 150)
-            setAqiStatus("Unhealthy for Sensitive Groups");
+          else if (latestAqi <= 150)
+            setAqiStatus("Unhealthy for Sensitive Groups 😷");
 
           else
-            setAqiStatus("Poor Air Quality 😷");
+            setAqiStatus("Poor Air Quality 🚨");
 
         } catch (err) {
-          console.log(err);
+
+          console.log("AQI Error:", err);
+
+          setAqiStatus("Failed To Load AQI");
+
         }
+
+      },
+
+      (error) => {
+
+        console.log("Location Error:", error);
+
+        setAqiStatus("Location Permission Denied");
+
       }
+
     );
 
   }, []);
