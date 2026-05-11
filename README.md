@@ -1,140 +1,321 @@
-# CarbonTrack 🌍⚡
+# 🌍 CarbonTrack — Smart Carbon Footprint & AQI Monitoring Platform ⚡
 
-**Carbon Footprint Tracking and AQI Monitoring Web Application**
+<div align="center">
 
-CarbonTrack is a full-stack web application that helps users monitor their **daily carbon emissions** and understand their environmental impact.
+# 🚀 Track Your Carbon Impact. Monitor Air Quality. Build A Greener Future.
 
-The platform allows users to calculate their carbon footprint and track emissions over time through a **dashboard and activity tracker**.
+<img src="https://img.shields.io/badge/Frontend-React-blue?style=for-the-badge&logo=react" />
+<img src="https://img.shields.io/badge/Backend-Node.js-green?style=for-the-badge&logo=node.js" />
+<img src="https://img.shields.io/badge/Database-MongoDB-darkgreen?style=for-the-badge&logo=mongodb" />
+<img src="https://img.shields.io/badge/Auth-Firebase-orange?style=for-the-badge&logo=firebase" />
+<img src="https://img.shields.io/badge/Deployment-Vercel-black?style=for-the-badge&logo=vercel" />
+<img src="https://img.shields.io/badge/API-Express-lightgrey?style=for-the-badge&logo=express" />
 
-It also tells live **AQI** of selected country or city and also give us the **AQI level** of that place 
+<br/>
+<br/>
 
-There is also a **Donate** Feature where You can support environmnet by donating for planting trees.
+### 🌱 Full Stack Environmental Intelligence Platform
 
-The project is built using **React, Node.js, Express, MongoDB, and Firebase**, with deployment on **Vercel and Render**.
+Track your **carbon emissions**, monitor **live AQI**, analyze environmental impact, and build sustainable habits with smart analytics and future IoT integration.
 
----
-
-# 🚀 Features
-
-### Carbon Emission Dashboard
-
-The dashboard provides a quick overview of the user's carbon footprint.
-
-It displays:
-
-* **Total carbon emissions**
-* **Current month carbon emissions**
-
-This helps users understand their overall environmental impact.
+</div>
 
 ---
 
-### Emission Tracker
+# ✨ Overview
 
-The tracker page records carbon emissions **every time a calculation is made**.
+**CarbonTrack** is a modern full-stack web application that helps users monitor and analyze their environmental impact through **carbon footprint tracking** and **real-time AQI monitoring**.
 
-It displays:
+The platform provides detailed dashboards, historical analytics, emission tracking, and live air quality insights.
 
-* **Day-wise emission data**
-* **Month-wise emission Graph**
-* **Last 7 Days emission Graph**
-* **Time-wise emission entries**
-* Historical records stored in the database
+CarbonTrack combines:
 
-This allows users to track their emissions over time.
-
----
-
-### User Authentication
-
-Secure login system using **Firebase Authentication**.
-
-Users can:
-
-* Sign up
-* Log in
-* Access their personal carbon tracking data.
+✅ Carbon Footprint Tracking  
+✅ Live AQI Monitoring  
+✅ Dashboard Analytics  
+✅ Historical Emission Data  
+✅ Firebase Authentication  
+✅ MongoDB Cloud Storage  
+✅ Tree Plantation Donation Feature  
+✅ Upcoming IoT-based Smart Energy Monitoring
 
 ---
 
-### Persistent Data Storage
+# 🌟 Features
 
-All emission data is stored in **MongoDB**, allowing users to view their emission history anytime.
+# ⚡ Carbon Emission Dashboard
+
+The dashboard provides a complete overview of the user's environmental impact.
+
+### Dashboard Includes
+
+- 🌍 Total Carbon Emissions
+- 📅 Current Month Emissions
+- 📊 Emission Analytics
+- 📈 Weekly Emission Trends
+- 📉 Last 7 Days Graph
+- 🧾 Historical Emission Records
 
 ---
 
-# 🛠 Tech Stack
+# 📊 Emission Tracker
 
-### Frontend
+Every carbon calculation is automatically stored in the database for future analysis.
 
-* React.js
-* CSS
+### Tracker Features
 
-### Backend
+✅ Day-wise Emission Tracking  
+✅ Month-wise Emission Graphs  
+✅ Last 7 Days Analytics  
+✅ Time-wise Emission Entries  
+✅ Historical Data Visualization  
+✅ Real-time Dashboard Updates
 
-* Node.js
-* Express.js
+---
 
-### Database
+# 🌫 Live AQI Monitoring System
 
-* MongoDB Atlas
+CarbonTrack provides **real-time Air Quality Index (AQI)** information for any city or country.
 
-### Authentication
+### AQI Features
 
-* Firebase Authentication
+🌍 Search Any City or Country  
+📊 Real-time AQI Data  
+⚠ AQI Severity Levels  
+💨 Pollution Insights  
+🌡 Environmental Monitoring  
+📍 Location-based AQI Tracking
 
-### Deployment
+---
 
-* Vercel (Frontend hosting)
-* Render (Backend hosting)
+# 📌 AQI Classification
+
+| AQI Range | Level | Status |
+|------------|--------|--------|
+| 0 - 50 | Good | 🟢 Safe |
+| 51 - 100 | Moderate | 🟡 Acceptable |
+| 101 - 150 | Unhealthy for Sensitive Groups | 🟠 Caution |
+| 151 - 200 | Unhealthy | 🔴 Poor |
+| 201 - 300 | Very Unhealthy | 🟣 Dangerous |
+| 301+ | Hazardous | ⚫ Severe |
+
+---
+
+# 🔐 Authentication System
+
+Secure authentication powered by **Firebase Authentication**.
+
+### Features
+
+- User Signup
+- User Login
+- Protected Routes
+- Secure Sessions
+- Personal Dashboard Access
+
+---
+
+# 🛢 Persistent Data Storage
+
+All user emission records are stored securely in **MongoDB Atlas**.
+
+Users can access their historical emission data anytime.
+
+---
+
+# 🌱 Donation Feature
+
+Users can support environmental sustainability through the integrated donation system.
+
+### Purpose
+
+🌳 Tree Plantation  
+🌍 Environmental Awareness  
+♻ Sustainability Support
+
+---
+
+# 🤖 IoT Smart Energy Monitoring (Upcoming)
+
+CarbonTrack is evolving into a complete **IoT-powered environmental monitoring ecosystem**.
+
+The future system will use:
+
+- ESP8266 NodeMCU
+- ACS712 Current Sensor
+- Smart Energy Monitoring
+- Real-time Electricity Tracking
+
+---
+
+# 🔌 Planned IoT Features
+
+## ⚡ Real-Time Electricity Monitoring
+
+Track appliance electricity consumption in real time using IoT sensors.
+
+---
+
+## 📈 Live Energy Analytics
+
+Monitor:
+
+- Voltage
+- Current
+- Power Consumption
+- Carbon Emission Estimation
+
+---
+
+## 🚨 Smart Alerts
+
+Future updates will include:
+
+- High energy usage alerts
+- Abnormal consumption detection
+- Smart energy optimization recommendations
+
+---
+
+## ☁ Cloud Synchronization
+
+IoT sensor data will sync directly with MongoDB for real-time analytics and visualization.
 
 ---
 
 # 🏗 System Architecture
 
-User Activity Input
-↓
-React Frontend
-↓
-Node.js + Express API
-↓
-MongoDB Database
-↓
-Dashboard & Tracker Visualization
+```text
+                ┌─────────────────────┐
+                │   User Activity     │
+                └─────────┬───────────┘
+                          │
+                          ▼
+                ┌─────────────────────┐
+                │   React Frontend    │
+                └─────────┬───────────┘
+                          │
+              REST APIs / Axios Requests
+                          │
+                          ▼
+                ┌─────────────────────┐
+                │ Node.js + Express   │
+                └─────────┬───────────┘
+                          │
+        ┌─────────────────┴─────────────────┐
+        ▼                                   ▼
+┌─────────────────┐              ┌─────────────────┐
+│ MongoDB Atlas   │              │ Firebase Auth   │
+└─────────────────┘              └─────────────────┘
+
+                          ▼
+                ┌─────────────────────┐
+                │ Dashboard Analytics │
+                └─────────────────────┘
+
+                          ▼
+                ┌─────────────────────┐
+                │  AQI Live Monitoring│
+                └─────────────────────┘
+
+                          ▼
+                ┌─────────────────────┐
+                │ IoT Energy Tracking │
+                └─────────────────────┘
+```
 
 ---
 
-# 📊 Future Enhancements
+# 🛠 Tech Stack
 
-* IoT-based electricity monitoring using **ESP8266 NodeMCU**
-* Real-time energy usage tracking
-* Smart energy alerts
-* Carbon reduction suggestions
-* Advanced analytics dashboard
+# 🎨 Frontend
+
+- React.js
+- CSS
+- Axios
+- Chart.js / Recharts
+
+---
+
+# ⚙ Backend
+
+- Node.js
+- Express.js
+
+---
+
+# 🛢 Database
+
+- MongoDB Atlas
+
+---
+
+# 🔐 Authentication
+
+- Firebase Authentication
+
+---
+
+# ☁ Deployment
+
+| Service | Purpose |
+|----------|----------|
+| Vercel | Frontend Hosting |
+| Render | Backend Hosting |
+| MongoDB Atlas | Cloud Database |
+| Firebase | Authentication |
+
+---
+
+# 📂 Project Structure
+
+```bash
+CarbonTrack/
+│
+├── client/
+│   ├── src/
+│   ├── components/
+│   ├── pages/
+│   ├── charts/
+│   └── styles/
+│
+├── server/
+│   ├── routes/
+│   ├── controllers/
+│   ├── models/
+│   ├── middleware/
+│   └── config/
+│
+├── README.md
+└── package.json
+```
 
 ---
 
 # ⚙ Installation & Setup
 
-### Clone the repository
+# 1️⃣ Clone Repository
 
 ```bash
 git clone https://github.com/ketankumarjha2007/Carbon_Footprint
+```
+
+```bash
 cd Carbon_Footprint
 ```
 
 ---
 
-### Install dependencies
+# 2️⃣ Install Dependencies
 
-Backend
+## Backend
 
 ```bash
 cd server
 npm install
 ```
 
-Frontend
+## Frontend
 
 ```bash
 cd client
@@ -143,30 +324,33 @@ npm install
 
 ---
 
-### Setup Environment Variables
+# 3️⃣ Setup Environment Variables
 
-Create a `.env` file in the backend folder.
+Create a `.env` file inside the backend folder.
 
-Example:
-
-```
+```env
 MONGO_URI=your_mongodb_connection_string
-FIREBASE_API_KEY=your_firebase_key
+
+FIREBASE_API_KEY=your_firebase_api_key
+
+JWT_SECRET=your_secret_key
+
+AQI_API_KEY=your_aqi_api_key
 ```
 
 ---
 
-### Run the project
+# 4️⃣ Run Backend
 
-Backend
-
-```
+```bash
 npm start
 ```
 
-Frontend
+---
 
-```
+# 5️⃣ Run Frontend
+
+```bash
 npm run dev
 ```
 
@@ -174,18 +358,98 @@ npm run dev
 
 # 🌐 Deployment
 
-* Frontend hosted on **Vercel**
-* Backend hosted on **Render**
+# Frontend Deployment
+
+Deployed using **Vercel**
 
 ---
 
-# 🎯 Project Goal
+# Backend Deployment
 
-CarbonTrack aims to help individuals **understand and track their carbon footprint**, encouraging sustainable habits through simple data tracking and visualization.
+Deployed using **Render**
+
+---
+
+# 📊 Core Functionalities
+
+| Module | Description |
+|--------|-------------|
+| Carbon Calculator | Calculates user carbon emissions |
+| Dashboard | Displays emission analytics |
+| AQI Monitoring | Shows live air quality data |
+| Authentication | Secure Firebase login system |
+| Emission Tracker | Stores historical records |
+| Donation System | Supports environmental causes |
+| IoT Monitoring | Future real-time energy tracking |
+
+---
+
+
+
+# 🚀 Future Enhancements
+
+- 🤖 AI-based Carbon Reduction Suggestions
+- ⚡ Smart Appliance Monitoring
+- 📱 Mobile App Version
+- 🌍 Smart Sustainability Score
+- 📈 Advanced Analytics Dashboard
+- ☁ Real-time IoT Data Streaming
+- 🔔 Smart Notifications & Alerts
+
+---
+
+# 🛡 Security Features
+
+✅ Firebase Authentication  
+✅ Protected API Routes  
+✅ Secure Environment Variables  
+✅ MongoDB Atlas Security  
+✅ Authentication Middleware
+
+---
+
+# 💡 Why CarbonTrack?
+
+CarbonTrack helps users:
+
+🌍 Understand environmental impact  
+📊 Track emissions over time  
+⚡ Monitor live AQI conditions  
+📈 Analyze electricity usage  
+🌱 Build sustainable habits
 
 ---
 
 # 👨‍💻 Author
 
-Ketan
-Full Stack Developer
+# Ketan  
+### Full Stack Developer 🚀
+
+Passionate about:
+
+- Full Stack Development
+- IoT Systems
+- Environmental Technology
+- Smart Energy Solutions
+- Scalable Web Applications
+
+---
+
+# ⭐ Support The Project
+
+If you like this project:
+
+🌟 Star the repository  
+🍴 Fork the project  
+📢 Share with others  
+🌱 Spread environmental awareness
+
+---
+
+<div align="center">
+
+# 🌍 "Small Daily Changes Create A Greener Tomorrow."
+
+## CarbonTrack ⚡
+
+</div>
