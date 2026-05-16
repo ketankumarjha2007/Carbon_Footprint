@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { auth } from "../firebase";
-import { db } from "../firebase"; 
+import { db } from "../firebase";
 import { ref, onValue } from "firebase/database";
 import "../styles/calculator.css";
 import { useNavigate } from "react-router-dom";
@@ -129,17 +129,17 @@ export default function Calculator() {
     const tips = [];
 
     if (carbonValue < 10)
-      tips.push("🌱 Excellent! Low carbon footprint");
+      tips.push("Excellent! Low carbon footprint");
     else if (carbonValue < 30)
-      tips.push("⚡ Moderate footprint. Improve slightly");
-    else tips.push("🚨 High footprint! Reduce emissions");
+      tips.push("Moderate footprint. Improve slightly");
+    else tips.push("High footprint! Reduce emissions");
 
-    if (travel === "Car") tips.push("🚗 Use public transport");
-    if (Number(electricity) > 200) tips.push("💡 Save electricity");
-    if (diet.includes("Non-veg")) tips.push("🥗 Reduce meat intake");
+    if (travel === "Car") tips.push("Use public transport");
+    if (Number(electricity) > 200) tips.push("Save electricity");
+    if (diet.includes("Non-veg")) tips.push("Reduce meat intake");
 
     if (aqi && aqi > 150)
-      tips.push("⚠️ High AQI! Avoid outdoor activity");
+      tips.push("High AQI! Avoid outdoor activity");
 
     return tips;
   };
@@ -164,8 +164,7 @@ export default function Calculator() {
 
     try {
       const travelEmission = travelFactors[travel] * Number(distance);
-      const electricityEmission =
-        (Number(electricity) / 30.44) * 0.82;
+      const electricityEmission = Number(electricity) * 0.82;
       const dietEmission = dietFactors[diet];
 
       const total =
@@ -259,7 +258,7 @@ export default function Calculator() {
 
         <input
           type="number"
-          placeholder="Electricity (kWh/month)"
+          placeholder="Electricity (kWh/Day)"
           value={electricity}
           onChange={(e) => setElectricity(e.target.value)}
         />
