@@ -6,7 +6,6 @@ import "../styles/calculator.css";
 import { useNavigate } from "react-router-dom";
 
 /* ---------------- FACTORS ---------------- */
-console.log("UID:", auth.currentUser?.uid);
 const travelFactors = {
   Car: 0.21,
   Bike: 0.05,

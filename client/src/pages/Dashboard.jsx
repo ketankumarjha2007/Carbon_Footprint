@@ -42,8 +42,6 @@ function Dashboard() {
           let month = 0;
 
           const currentMonth = new Date().getMonth();
-
-          // 🔥 sort latest first
           const sorted = data.sort(
             (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
           );

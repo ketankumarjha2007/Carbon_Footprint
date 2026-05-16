@@ -8,8 +8,6 @@ function Home() {
   const [aqi, setAqi] = useState(null);
   const [aqiStatus, setAqiStatus] = useState("");
   const glowRef = useRef(null);
-
-  /* PARTICLES */
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
