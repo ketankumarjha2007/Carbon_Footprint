@@ -7,6 +7,7 @@ import paymentRoutes from "./routes/payment.js";
 import contactRoutes from "./routes/contact.js";
 import emissionRoutes from "./routes/emission.js";
 import trackerRoutes from "./routes/trackerRoutes.js";
+import certificateMailRoutes from "./routes/certificateMail.js";
 
 dotenv.config({ path: "./server/.env" });
 
@@ -29,6 +30,7 @@ app.use("/api/contact", contactRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/emission", emissionRoutes);
 app.use("/api/tracker", trackerRoutes);
+app.use("/api/certificate-mail", certificateMailRoutes);
 
 /* ---------- Database Connection ---------- */
 

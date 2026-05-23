@@ -98,6 +98,60 @@ function Dashboard() {
     if (aqi <= 200) return "Poor 🟠";
     return "Hazardous 🔴";
   };
+  const sendCertificateEmail = async () => {
+
+    try {
+
+      const user = auth.currentUser;
+
+      if (!user) {
+
+        alert("Please login first");
+
+        return;
+
+      }
+
+      const response = await fetch(
+
+        "https://carbon-footprint-1-a5ae.onrender.com/api/certificate-mail/send-certificate",
+
+        {
+
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json"
+          },
+
+          body: JSON.stringify({
+
+            userId: user.uid,
+
+            email: user.email,
+
+            name: user.displayName || "User"
+
+          })
+
+        }
+
+      );
+
+      const data = await response.json();
+
+      alert(data.message);
+
+    }
+    catch (err) {
+
+      console.log(err);
+
+      alert("Certificate email failed");
+
+    }
+
+  };
 
   return (
 
@@ -159,6 +213,10 @@ function Dashboard() {
 
         <button onClick={() => navigate("/donate")}>
           Donate for Trees
+        </button>
+        
+        <button onClick={sendCertificateEmail}>
+          Get Certificate
         </button>
 
       </div>
