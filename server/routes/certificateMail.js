@@ -12,7 +12,7 @@ router.post("/send-certificate", async (req, res) => {
 
     const { userId, email, name } = req.body;
 
-    // GET USER DATA
+    // FETCH USER DATA
     const data = await Emission
       .find({ userId })
       .sort({ createdAt: -1 });
@@ -26,27 +26,76 @@ router.post("/send-certificate", async (req, res) => {
 
     }
 
-    const current = data[0];
+    /* ---------- MONTHLY CALCULATION ---------- */
 
-    const previous = data[1] || {
-      total: current.total + 5
-    };
+    const now = new Date();
 
-    /* ---------- CALCULATIONS ---------- */
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    const previousMonth =
+      currentMonth === 0 ? 11 : currentMonth - 1;
+
+    const previousYear =
+      currentMonth === 0
+        ? currentYear - 1
+        : currentYear;
+
+    let currentMonthTotal = 0;
+    let previousMonthTotal = 0;
+
+    data.forEach((item) => {
+
+      const date = new Date(item.createdAt);
+
+      const month = date.getMonth();
+      const year = date.getFullYear();
+
+      if (
+        month === currentMonth &&
+        year === currentYear
+      ) {
+
+        currentMonthTotal += Number(item.total);
+
+      }
+
+      if (
+        month === previousMonth &&
+        year === previousYear
+      ) {
+
+        previousMonthTotal += Number(item.total);
+
+      }
+
+    });
 
     let carbonSaved =
-      previous.total - current.total;
+      previousMonthTotal - currentMonthTotal;
 
     if (carbonSaved < 0) {
       carbonSaved = 0;
     }
 
     const reduction =
-      (carbonSaved / previous.total) * 100;
+      previousMonthTotal > 0
+        ? (
+            (carbonSaved / previousMonthTotal) * 100
+          )
+        : 0;
 
-    /* ---------- CREATE PDF ---------- */
+    const monthName =
+      now.toLocaleString("default", {
+        month: "long"
+      });
 
-    const doc = new PDFDocument();
+    /* ---------- PDF ---------- */
+
+    const doc = new PDFDocument({
+      layout: "landscape",
+      size: "A4"
+    });
 
     let buffers = [];
 
@@ -54,10 +103,7 @@ router.post("/send-certificate", async (req, res) => {
 
     doc.on("end", async () => {
 
-      const pdfBuffer =
-        Buffer.concat(buffers);
-
-      /* ---------- RESEND ---------- */
+      const pdfBuffer = Buffer.concat(buffers);
 
       const resend =
         new Resend(process.env.RESEND_API_KEY);
@@ -77,11 +123,8 @@ router.post("/send-certificate", async (req, res) => {
           <h2>Hello ${name}</h2>
 
           <p>
-            Congratulations on reducing your carbon footprint.
-          </p>
-
-          <p>
-            Your sustainability certificate is attached below.
+            Your CarbonTrack sustainability certificate
+            is attached below.
           </p>
 
         `,
@@ -93,7 +136,9 @@ router.post("/send-certificate", async (req, res) => {
               "CarbonTrack_Certificate.pdf",
 
             content:
-              pdfBuffer.toString("base64")
+              pdfBuffer.toString("base64"),
+
+            encoding: "base64"
           }
 
         ]
@@ -111,86 +156,151 @@ router.post("/send-certificate", async (req, res) => {
 
     });
 
-    /* ---------- PDF DESIGN ---------- */
+    /* ---------- CERTIFICATE DESIGN ---------- */
 
-    // BORDER
+    // BACKGROUND BORDER
     doc
-      .rect(20, 20, 555, 800)
-      .stroke("#16a34a");
+      .roundedRect(20, 20, 800, 550, 20)
+      .stroke("#d1d5db");
 
-    // TITLE
+    // LOGO TEXT
     doc
-      .fontSize(26)
-      .fillColor("green")
+      .fontSize(18)
+      .fillColor("#166534")
       .text(
-        "CarbonTrack Sustainability Certificate",
+        "🌱 CarbonTrack",
+        0,
+        60,
         {
           align: "center"
         }
       );
 
-    doc.moveDown(2);
+    // MAIN TITLE
+    doc
+      .fontSize(36)
+      .fillColor("black")
+      .text(
+        "Certificate of Sustainability",
+        0,
+        130,
+        {
+          align: "center"
+        }
+      );
+
+    // RIBBON
+    doc
+      .rect(250, 210, 340, 45)
+      .fill("#111827");
+
+    doc
+      .fillColor("white")
+      .fontSize(18)
+      .text(
+        "Monthly Carbon Reduction Achievement",
+        0,
+        224,
+        {
+          align: "center"
+        }
+      );
+
+    // PRESENTED TO
+    doc
+      .fillColor("#6b7280")
+      .fontSize(16)
+      .text(
+        "PRESENTED TO",
+        0,
+        310,
+        {
+          align: "center"
+        }
+      );
 
     // USER NAME
     doc
-      .fillColor("black")
-      .fontSize(18)
+      .fillColor("#166534")
+      .fontSize(34)
       .text(
-        `Presented To: ${name}`,
+        name,
+        0,
+        355,
         {
           align: "center"
         }
       );
 
-    doc.moveDown(2);
+    // LINE
+    doc
+      .moveTo(180, 410)
+      .lineTo(660, 410)
+      .stroke("#9ca3af");
 
-    // DETAILS
+    // DESCRIPTION
+    doc
+      .fillColor("black")
+      .fontSize(15)
+      .text(
+        `This certificate is proudly awarded for reducing carbon emissions during ${monthName} ${currentYear} through sustainable lifestyle choices and environmental responsibility.`,
+        170,
+        440,
+        {
+          align: "center",
+          width: 500
+        }
+      );
+
+    // STATS
     doc
       .fontSize(16)
       .text(
-        `Carbon Saved: ${carbonSaved.toFixed(2)} kg CO2`
+        `Previous Month Consumption: ${previousMonthTotal.toFixed(2)} kg CO2`,
+        250,
+        520
       );
 
-    doc.moveDown();
-
     doc.text(
-      `Reduction Percentage: ${reduction.toFixed(1)}%`
+      `Current Month Consumption: ${currentMonthTotal.toFixed(2)} kg CO2`,
+      250,
+      550
     );
 
-    doc.moveDown();
-
-    doc.text(
-      `Points Earned: ${current.points}`
-    );
-
-    doc.moveDown();
-
-    doc.text(
-      `Level Achieved: ${current.level}`
-    );
-
-    doc.moveDown(3);
-
-    // MESSAGE
     doc
-      .fontSize(14)
+      .fillColor("#15803d")
+      .fontSize(18)
       .text(
-        "Thank you for contributing towards a greener future 🌱",
-        {
-          align: "center"
-        }
+        `Carbon Reduced: ${carbonSaved.toFixed(2)} kg CO2`,
+        250,
+        580
       );
-
-    doc.moveDown(4);
 
     // DATE
     doc
-      .fontSize(12)
+      .fillColor("black")
+      .fontSize(13)
       .text(
         `Issued on: ${new Date().toDateString()}`,
-        {
-          align: "center"
-        }
+        70,
+        690
+      );
+
+    // SIGNATURE
+    doc
+      .fontSize(24)
+      .text(
+        "Ketan Kumar Jha",
+        620,
+        650
+      );
+
+    doc
+      .fontSize(13)
+      .text(
+        "Founder, CarbonTrack",
+        650,
+        685
       );
 
     doc.end();
