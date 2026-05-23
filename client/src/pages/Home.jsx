@@ -162,7 +162,7 @@ function Home() {
       <section className="hero">
         <div className="hero-content">
           <div className="top-badge">
-            Monitor Your Carbon Footprint & Air Quality in Real-Time
+            Carbon Karo Track — Welcome to CarbonTrack
           </div>
 
           <h1>
