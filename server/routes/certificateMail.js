@@ -1,6 +1,6 @@
 import express from "express";
 import PDFDocument from "pdfkit";
-import SibApiV3Sdk from "@getbrevo/brevo";
+import SibApiV3Sdk from "sib-api-v3-sdk";
 import crypto from "crypto";
 import Emission from "../models/emissionModel.js";
 
@@ -248,13 +248,14 @@ router.post("/send-certificate", async (req, res) => {
 
     const pdfBuffer = Buffer.concat(buffers);
     const pdfBase64 = pdfBuffer.toString("base64");
+    const defaultClient = SibApiV3Sdk.ApiClient.instance;
+
+    const apiKey = defaultClient.authentications["api-key"];
+    apiKey.apiKey = process.env.BREVO_API_KEY;
+
     const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
-    apiInstance.setApiKey(
-      SibApiV3Sdk.TransactionalEmailsApiApiKeys.apiKey,
-      process.env.BREVO_API_KEY
-    );
-    const sendSmtpEmail = new brevo.SendSmtpEmail();
+    const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
 
     sendSmtpEmail.sender = { name: "CarbonTrack", email: process.env.SENDER_EMAIL }; // your verified Gmail in Brevo
     sendSmtpEmail.to = [{ email, name }];
