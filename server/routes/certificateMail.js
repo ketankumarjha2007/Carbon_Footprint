@@ -1,6 +1,6 @@
 import express from "express";
 import PDFDocument from "pdfkit";
-import * as brevo from "@getbrevo/brevo";
+import brevo from "@getbrevo/brevo";
 import crypto from "crypto";
 import Emission from "../models/emissionModel.js";
 
