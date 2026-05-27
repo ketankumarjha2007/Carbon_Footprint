@@ -5,8 +5,6 @@ import crypto from "crypto";
 import Emission from "../models/emissionModel.js";
 
 const router = express.Router();
-
-// ── PALETTE ───────────────────────────────────────────────────────────────────
 const DEEP_FOREST = "#0B2818";
 const FOREST = "#14532D";
 const MID_GREEN = "#166534";
@@ -18,7 +16,6 @@ const CREAM = "#FDFBF4";
 const WARM_GRAY = "#9CA3AF";
 const OFF_WHITE = "#F0EDE4";
 
-// ── HELPERS ───────────────────────────────────────────────────────────────────
 function fc(doc, hex, alpha = 1) { doc.fillColor(hex, alpha); }
 function sc(doc, hex) { doc.strokeColor(hex); }
 
@@ -52,8 +49,6 @@ function statBox(doc, cx, cy, label, value, unit, highlight = false) {
   fc(doc, highlight ? LEAF : WARM_GRAY);
   doc.font("Helvetica").fontSize(7.5).text(label, x, y + bh - 16, { width: bw, align: "center" });
 }
-
-// ── MAIN DRAW ─────────────────────────────────────────────────────────────────
 function drawCertificate(doc, { name, monthName, year, previousTotal, currentTotal, carbonSaved, reduction }) {
   const W = 841.89, H = 595.28;
 
@@ -177,8 +172,6 @@ function drawCertificate(doc, { name, monthName, year, previousTotal, currentTot
     .text("CARBONTRACK", 0, H / 2 - 40, { width: W, align: "center" });
   doc.restore();
 }
-
-// ── ROUTE ─────────────────────────────────────────────────────────────────────
 router.post("/send-certificate", async (req, res) => {
   try {
     const { userId, email, name } = req.body;
