@@ -47,16 +47,25 @@ function TierToast({ tier, reduction, carbonSaved, onClose }) {
   );
 }
 
+// ─── Utility: is today the last day of the current month? ────────────────────
+function isLastDayOfMonth() {
+  const today    = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+  // If tomorrow is in a different month, today is the last day
+  return tomorrow.getMonth() !== today.getMonth();
+}
+
 function Dashboard() {
   const navigate = useNavigate();
 
-  const [userName, setUserName] = useState("User");
+  const [userName,    setUserName]    = useState("User");
   const [totalCarbon, setTotalCarbon] = useState(0);
   const [monthCarbon, setMonthCarbon] = useState(0);
-  const [points, setPoints] = useState(0);
+  const [points,      setPoints]      = useState(0);
   const [carbonSaved, setCarbonSaved] = useState(0);
-  const [level, setLevel] = useState("Beginner");
-  const [aqiValue, setAqiValue] = useState(0);
+  const [level,       setLevel]       = useState("Beginner");
+  const [aqiValue,    setAqiValue]    = useState(0);
   const [certLoading, setCertLoading] = useState(false);
 
   // Toast state
@@ -100,16 +109,20 @@ function Dashboard() {
         })
         .catch(err => console.log("Stats fetch error:", err));
 
-      // ── Auto certificate check (runs once per session) ────────────────────
+      // ── Auto certificate: only on the last day of the month, once per session ──
       if (!autoCheckDone.current) {
         autoCheckDone.current = true;
-        autoCheckCertificate(user);
+
+        if (isLastDayOfMonth()) {
+          autoCheckCertificate(user);
+        }
+        // If not the last day, silently skip — no API call made at all
       }
     });
     return () => unsubscribe();
   }, []);
 
-  // ── Auto check: silently fires on login, shows toast if eligible ─────────
+  // ── Auto check: fires only on last day of month, backend deduplicates ────────
   const autoCheckCertificate = async (user) => {
     try {
       const res = await fetch(
@@ -119,16 +132,16 @@ function Dashboard() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             userId: user.uid,
-            email: user.email,
-            name: user.displayName || "User",
+            email:  user.email,
+            name:   user.displayName || "User",
           }),
         }
       );
       const data = await res.json();
       if (data.success && data.eligible) {
         setToast({
-          tier: data.tier,
-          reduction: data.reduction,
+          tier:        data.tier,
+          reduction:   data.reduction,
           carbonSaved: data.carbonSaved,
         });
       }
@@ -138,7 +151,7 @@ function Dashboard() {
     }
   };
 
-  // ── Manual "Get Certificate" button ──────────────────────────────────────
+  // ── Manual "Get Certificate" button — always sends instantly ─────────────
   const sendCertificateEmail = async () => {
     try {
       const user = auth.currentUser;
@@ -152,8 +165,8 @@ function Dashboard() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             userId: user.uid,
-            email: user.email,
-            name: user.displayName || "User",
+            email:  user.email,
+            name:   user.displayName || "User",
           }),
         }
       );
@@ -161,8 +174,8 @@ function Dashboard() {
 
       if (data.success && data.eligible) {
         setToast({
-          tier: data.tier,
-          reduction: data.reduction,
+          tier:        data.tier,
+          reduction:   data.reduction,
           carbonSaved: data.carbonSaved,
         });
       } else {

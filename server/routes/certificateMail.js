@@ -3,6 +3,7 @@ import PDFDocument from "pdfkit";
 import SibApiV3Sdk from "sib-api-v3-sdk";
 import crypto from "crypto";
 import Emission from "../models/emissionModel.js";
+import CertificateLog from "../models/certificateLogModel.js";
 
 const router = express.Router();
 
@@ -12,7 +13,8 @@ const TIERS = {
     name: "Bronze",
     minReduction: 1,
     maxReduction: 10,
-    emoji: "🥉",
+    emoji: "🥉",  
+    pdfMedal: "BRONZE",
     tagline: "Every step counts — your journey has begun.",
     bg: "#1A0F00",
     glow1: "#3D1F00",
@@ -29,12 +31,14 @@ const TIERS = {
     leafColor: "#E8A96E",
     badgeColor: "#CD7F32",
     badgeBg: "#3D1F00",
+    starCount: 2,
   },
   silver: {
     name: "Silver",
     minReduction: 10,
     maxReduction: 25,
     emoji: "🥈",
+    pdfMedal: "SILVER",
     tagline: "Impressive progress — sustainability is your habit.",
     bg: "#0D0D0F",
     glow1: "#1A1A2E",
@@ -51,12 +55,14 @@ const TIERS = {
     leafColor: "#D4D4DC",
     badgeColor: "#C0C0C8",
     badgeBg: "#1A1A2E",
+    starCount: 3,
   },
   gold: {
     name: "Gold",
     minReduction: 25,
     maxReduction: 50,
     emoji: "🥇",
+    pdfMedal: "GOLD",
     tagline: "Outstanding achievement — you are a climate champion.",
     bg: "#0B2818",
     glow1: "#14532D",
@@ -73,12 +79,14 @@ const TIERS = {
     leafColor: "#22C55E",
     badgeColor: "#D4A853",
     badgeBg: "#14532D",
+    starCount: 4,
   },
   platinum: {
     name: "Platinum",
     minReduction: 50,
     maxReduction: Infinity,
     emoji: "💎",
+    pdfMedal: "PLATINUM",
     tagline: "Extraordinary — you are redefining what's possible.",
     bg: "#050B14",
     glow1: "#0A1628",
@@ -95,6 +103,7 @@ const TIERS = {
     leafColor: "#90E0EF",
     badgeColor: "#8ECAE6",
     badgeBg: "#0A1628",
+    starCount: 5,
   },
 };
 
@@ -104,7 +113,7 @@ function getTier(reduction) {
   if (reduction >= 25) return TIERS.gold;
   if (reduction >= 10) return TIERS.silver;
   if (reduction >= 1)  return TIERS.bronze;
-  return null; // no certificate
+  return null;
 }
 
 // ─── PDF Helpers ──────────────────────────────────────────────────────────────
@@ -124,33 +133,48 @@ function cornerArc(doc, cx, cy, scaleX, scaleY, t) {
   doc.restore();
 }
 
-function tierStars(doc, cx, cy, t, count) {
-  const spacing = 18;
+// Stars drawn as filled polygons — no emoji needed
+function drawStar(doc, cx, cy, r, color) {
+  const points = [];
+  for (let i = 0; i < 5; i++) {
+    const outerAngle = (Math.PI * 2 * i) / 5 - Math.PI / 2;
+    const innerAngle = outerAngle + Math.PI / 5;
+    points.push([cx + r * Math.cos(outerAngle), cy + r * Math.sin(outerAngle)]);
+    points.push([cx + (r * 0.4) * Math.cos(innerAngle), cy + (r * 0.4) * Math.sin(innerAngle)]);
+  }
+  fc(doc, color);
+  doc.polygon(...points).fill();
+}
+
+function tierStars(doc, cx, cy, t) {
+  const count = t.starCount;
+  const spacing = 20;
   const startX = cx - ((count - 1) * spacing) / 2;
   for (let i = 0; i < count; i++) {
-    const sx = startX + i * spacing;
-    fc(doc, t.accent);
-    doc.circle(sx, cy, 4).fill();
-    fc(doc, t.accentLight, 0.5);
-    doc.circle(sx, cy, 2).fill();
+    drawStar(doc, startX + i * spacing, cy, 6, t.accent);
   }
 }
 
-function statBox(doc, cx, cy, label, value, unit, highlight, t) {
+// Stat box with "CO2" text (no Unicode subscript — Helvetica can't render it)
+function statBox(doc, cx, cy, label, value, highlight, t) {
   const bw = 134, bh = 60;
   const x = cx - bw / 2, y = cy - bh / 2;
+
   fc(doc, highlight ? t.statHighBg : t.statBg);
   sc(doc, highlight ? t.statHighBorder : t.statBorder);
   doc.lineWidth(highlight ? 1.2 : 0.6).roundedRect(x, y, bw, bh, 6).fillAndStroke();
+
+  // "kg CO2" — plain ASCII, no Unicode subscript
   fc(doc, t.accentLight, 0.7);
-  doc.font("Helvetica").fontSize(7.5).text(unit, x, y + 9, { width: bw, align: "center" });
+  doc.font("Helvetica").fontSize(7.5).text("kg CO2", x, y + 9, { width: bw, align: "center" });
+
   fc(doc, highlight ? t.accentLight : "#F0EDE4");
   doc.font("Helvetica-Bold").fontSize(21).text(value, x, y + 20, { width: bw, align: "center" });
+
   fc(doc, highlight ? t.accent : "#9CA3AF");
   doc.font("Helvetica").fontSize(7.5).text(label, x, y + bh - 15, { width: bw, align: "center" });
 }
 
-// ─── Core Certificate Renderer ────────────────────────────────────────────────
 function drawCertificate(doc, { name, monthName, year, previousTotal, currentTotal, carbonSaved, reduction, tier }) {
   const W = 841.89, H = 595.28;
   const t = tier;
@@ -165,7 +189,7 @@ function drawCertificate(doc, { name, monthName, year, previousTotal, currentTot
   fc(doc, t.glow2, 0.3);
   doc.ellipse(W / 2, H / 2, 200, 145).fill();
 
-  // 3. Platinum shimmer (extra layer for top tier)
+  // 3. Platinum shimmer
   if (t.name === "Platinum") {
     fc(doc, "#0A2444", 0.4);
     doc.ellipse(W * 0.25, H * 0.25, 180, 120).fill();
@@ -184,7 +208,7 @@ function drawCertificate(doc, { name, monthName, year, previousTotal, currentTot
   cornerArc(doc, mg + 4, H - mg - 4, 1, -1, t);
   cornerArc(doc, W - mg - 4, H - mg - 4, -1, -1, t);
 
-  // 6. Logo leaf
+  // 6. Logo leaf (drawn as path — no emoji)
   const logoTop = 42;
   fc(doc, t.leafColor);
   doc.save();
@@ -198,9 +222,9 @@ function drawCertificate(doc, { name, monthName, year, previousTotal, currentTot
   doc.font("Helvetica-Bold").fontSize(12)
     .text("C A R B O N T R A C K", 0, logoTop + 36, { width: W, align: "center" });
 
-  // 8. Tier badge pill
+  // 8. Tier badge pill — uses pdfMedal (text only, no emoji)
   const tierBadgeY = logoTop + 56;
-  const tierLabel = `${t.emoji}  ${t.name.toUpperCase()}  TIER  ${t.emoji}`;
+  const tierLabel = `* ${t.pdfMedal} TIER *`;
   const pillW = 160, pillH = 22;
   fc(doc, t.badgeBg);
   sc(doc, t.border1); doc.lineWidth(1).roundedRect(W / 2 - pillW / 2, tierBadgeY, pillW, pillH, 11).fillAndStroke();
@@ -245,13 +269,13 @@ function drawCertificate(doc, { name, monthName, year, previousTotal, currentTot
     .text(`For demonstrating outstanding commitment to environmental responsibility during`, 0, achY, { width: W, align: "center" })
     .text(`${monthName} ${year} — achieving measurable carbon reduction through sustainable choices.`, 0, achY + 14, { width: W, align: "center" });
 
-  // 15. Stat boxes
+  // 15. Stat boxes (no Unicode subscript in unit label)
   const statsCY = achY + 62;
-  statBox(doc, W / 2 - 200, statsCY, "PREVIOUS MONTH", previousTotal.toFixed(2), "kg CO₂", false, t);
-  statBox(doc, W / 2, statsCY, "CARBON REDUCED", carbonSaved.toFixed(2), "kg CO₂", true, t);
-  statBox(doc, W / 2 + 200, statsCY, "CURRENT MONTH", currentTotal.toFixed(2), "kg CO₂", false, t);
+  statBox(doc, W / 2 - 200, statsCY, "PREVIOUS MONTH", previousTotal.toFixed(2), false, t);
+  statBox(doc, W / 2,        statsCY, "CARBON REDUCED",  carbonSaved.toFixed(2),   true,  t);
+  statBox(doc, W / 2 + 200, statsCY, "CURRENT MONTH",  currentTotal.toFixed(2),  false, t);
 
-  // 16. Reduction % badge
+  // 16. Reduction % badge (circle with text — no emoji)
   const bx = W / 2 + 320;
   fc(doc, t.accent);
   doc.circle(bx, statsCY, 30).fill();
@@ -261,10 +285,9 @@ function drawCertificate(doc, { name, monthName, year, previousTotal, currentTot
   doc.font("Helvetica").fontSize(7)
     .text("REDUCED", bx - 30, statsCY + 8, { width: 60, align: "center" });
 
-  // 17. Stars row
+  // 17. Stars row — drawn as polygons, not Unicode stars
   const starsY = statsCY + 42;
-  const starCount = t.name === "Platinum" ? 5 : t.name === "Gold" ? 4 : t.name === "Silver" ? 3 : 2;
-  tierStars(doc, W / 2, starsY, t, starCount);
+  tierStars(doc, W / 2, starsY, t);
 
   // 18. Divider 2
   const d2y = starsY + 18;
@@ -312,7 +335,6 @@ function drawCertificate(doc, { name, monthName, year, previousTotal, currentTot
   doc.restore();
 }
 
-// ─── Email HTML Builder ───────────────────────────────────────────────────────
 function buildEmailHtml({ name, monthName, year, carbonSaved, reduction, tier }) {
   const tierColors = {
     Bronze:   { bg: "#1A0F00", header: "#CD7F32", accent: "#F0C080", badge: "#CD7F32", badgeText: "#3D1F00" },
@@ -321,7 +343,6 @@ function buildEmailHtml({ name, monthName, year, carbonSaved, reduction, tier })
     Platinum: { bg: "#050B14", header: "#8ECAE6", accent: "#CAF0F8", badge: "#8ECAE6", badgeText: "#050B14" },
   };
   const c = tierColors[tier.name];
-
   return `
 <!DOCTYPE html>
 <html>
@@ -349,7 +370,7 @@ function buildEmailHtml({ name, monthName, year, carbonSaved, reduction, tier })
               Hi <strong style="color:${c.accent}">${name}</strong>,
             </p>
             <p style="color:rgba(255,255,255,0.65);font-size:15px;line-height:1.7;margin:0 0 28px">
-              Congratulations on earning your <strong style="color:${c.accent}">${tier.name} Tier</strong> CarbonTrack certificate! 
+              Congratulations on earning your <strong style="color:${c.accent}">${tier.name} Tier</strong> CarbonTrack certificate!
               Your dedication to reducing your environmental impact is making a real difference.
             </p>
 
@@ -394,7 +415,7 @@ function buildEmailHtml({ name, monthName, year, carbonSaved, reduction, tier })
         <!-- Footer -->
         <tr>
           <td style="padding:24px 40px;border-top:1px solid rgba(255,255,255,0.06);text-align:center">
-            <p style="color:rgba(255,255,255,0.2);font-size:12px;margin:0 0 6px">© ${year} CarbonTrack · Making sustainability measurable</p>
+            <p style="color:rgba(255,255,255,0.2);font-size:12px;margin:0 0 6px">&copy; ${year} CarbonTrack &middot; Making sustainability measurable</p>
             <p style="color:rgba(255,255,255,0.15);font-size:11px;margin:0">You received this because you reduced your carbon footprint this month.</p>
           </td>
         </tr>
@@ -405,8 +426,6 @@ function buildEmailHtml({ name, monthName, year, carbonSaved, reduction, tier })
 </body>
 </html>`;
 }
-
-// ─── POST /send-certificate  (manual trigger) ─────────────────────────────────
 router.post("/send-certificate", async (req, res) => {
   try {
     const { userId, email, name } = req.body;
@@ -418,7 +437,8 @@ router.post("/send-certificate", async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid email address" });
     }
 
-    const result = await buildAndSendCertificate({ userId, email, name });
+    // autoCheck: false → skips deduplication, always sends immediately
+    const result = await buildAndSendCertificate({ userId, email, name, autoCheck: false });
     res.json(result);
   } catch (err) {
     console.error("CERTIFICATE ERROR:", err);
@@ -426,9 +446,6 @@ router.post("/send-certificate", async (req, res) => {
   }
 });
 
-// ─── POST /check-and-send  (auto trigger — call this on login) ────────────────
-// Frontend calls this silently after auth. It checks if reduction happened,
-// if yes, determines tier, sends the certificate, returns tier info.
 router.post("/check-and-send", async (req, res) => {
   try {
     const { userId, email, name } = req.body;
@@ -436,6 +453,7 @@ router.post("/check-and-send", async (req, res) => {
       return res.status(400).json({ success: false, message: "Missing fields" });
     }
 
+    // autoCheck: true → deduplication enabled
     const result = await buildAndSendCertificate({ userId, email, name, autoCheck: true });
     res.json(result);
   } catch (err) {
@@ -453,23 +471,22 @@ async function buildAndSendCertificate({ userId, email, name, autoCheck = false 
 
   const now = new Date();
   const currentMonth = now.getMonth();
-  const currentYear = now.getFullYear();
+  const currentYear  = now.getFullYear();
   const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1;
-  const previousYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+  const previousYear  = currentMonth === 0 ? currentYear - 1 : currentYear;
 
   let currentTotal = 0, previousTotal = 0;
   data.forEach(item => {
     const d = new Date(item.createdAt);
     const val = Number(item.total) || 0;
-    if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) currentTotal += val;
+    if (d.getMonth() === currentMonth && d.getFullYear() === currentYear)   currentTotal  += val;
     if (d.getMonth() === previousMonth && d.getFullYear() === previousYear) previousTotal += val;
   });
 
   const carbonSaved = Math.max(previousTotal - currentTotal, 0);
-  const reduction = previousTotal > 0 ? (carbonSaved / previousTotal) * 100 : 0;
-  const tier = getTier(reduction);
+  const reduction   = previousTotal > 0 ? (carbonSaved / previousTotal) * 100 : 0;
+  const tier        = getTier(reduction);
 
-  // If auto-check mode and no reduction, silently skip
   if (!tier) {
     return {
       success: false,
@@ -480,9 +497,25 @@ async function buildAndSendCertificate({ userId, email, name, autoCheck = false 
     };
   }
 
+  // ── Deduplication: auto-check only sends once per month per user ───────────
+  if (autoCheck) {
+    const alreadySent = await CertificateLog.findOne({
+      userId,
+      month: currentMonth,
+      year:  currentYear,
+    });
+    if (alreadySent) {
+      return {
+        success: false,
+        eligible: false,
+        message: "Certificate already sent this month.",
+      };
+    }
+  }
+
   const monthName = now.toLocaleString("default", { month: "long" });
 
-  // Build PDF
+  // ── Build PDF ──────────────────────────────────────────────────────────────
   const doc = new PDFDocument({ layout: "landscape", size: "A4", margin: 0 });
   const buffers = [];
   doc.on("data", chunk => buffers.push(chunk));
@@ -505,31 +538,38 @@ async function buildAndSendCertificate({ userId, email, name, autoCheck = false 
 
   const pdfBase64 = Buffer.concat(buffers).toString("base64");
 
-  // Send via Brevo
   const defaultClient = SibApiV3Sdk.ApiClient.instance;
   defaultClient.authentications["api-key"].apiKey = process.env.BREVO_API_KEY;
 
   const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
   const mail = new SibApiV3Sdk.SendSmtpEmail();
 
-  mail.sender = { name: "CarbonTrack", email: process.env.SENDER_EMAIL };
-  mail.to = [{ email, name }];
-  mail.subject = `${tier.emoji} Your ${tier.name} Tier Certificate — ${monthName} ${currentYear}`;
+  mail.sender     = { name: "CarbonTrack", email: process.env.SENDER_EMAIL };
+  mail.to         = [{ email, name }];
+  mail.subject    = `${tier.emoji} Your ${tier.name} Tier Certificate — ${monthName} ${currentYear}`;
   mail.htmlContent = buildEmailHtml({ name, monthName, year: currentYear, carbonSaved, reduction, tier });
-  mail.attachment = [{
-    name: `CarbonTrack_${tier.name}_${monthName}_${currentYear}.pdf`,
+  mail.attachment  = [{
+    name:    `CarbonTrack_${tier.name}_${monthName}_${currentYear}.pdf`,
     content: pdfBase64,
   }];
 
   await apiInstance.sendTransacEmail(mail);
+  if (autoCheck) {
+    await CertificateLog.create({
+      userId,
+      month: currentMonth,
+      year:  currentYear,
+      tier:  tier.name,
+    });
+  }
 
   return {
-    success: true,
-    eligible: true,
-    tier: tier.name,
-    reduction: Math.round(reduction),
+    success:     true,
+    eligible:    true,
+    tier:        tier.name,
+    reduction:   Math.round(reduction),
     carbonSaved: carbonSaved.toFixed(2),
-    message: `${tier.emoji} ${tier.name} tier certificate sent to ${email}!`,
+    message:     `${tier.emoji} ${tier.name} tier certificate sent to ${email}!`,
   };
 }
 
