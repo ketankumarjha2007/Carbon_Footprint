@@ -271,3 +271,199 @@
     background-position: 200% center;
   }
 }
+
+/* ─── Add these to your Dashboard.css ───────────────────────────────────────── */
+/* Or create a separate CertToast.css and import it in Dashboard.jsx            */
+
+/* Toast overlay */
+.ct-toast-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(6px);
+  animation: ctOverlayIn 0.3s ease;
+}
+
+@keyframes ctOverlayIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Toast card */
+.ct-toast {
+  position: relative;
+  background: var(--tier-bg);
+  border: 1px solid var(--tier-border);
+  border-radius: 20px;
+  padding: 36px 40px 32px;
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+  animation: ctCardIn 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.04),
+    0 32px 80px rgba(0,0,0,0.6);
+  overflow: hidden;
+}
+
+.ct-toast::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--tier-color), transparent);
+  opacity: 0.6;
+}
+
+@keyframes ctCardIn {
+  from { opacity: 0; transform: translateY(32px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Close button */
+.ct-toast-close {
+  position: absolute;
+  top: 14px; right: 18px;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.3);
+  font-size: 22px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: color 0.2s, background 0.2s;
+}
+.ct-toast-close:hover {
+  color: rgba(255,255,255,0.7);
+  background: rgba(255,255,255,0.08);
+}
+
+/* Big emoji */
+.ct-toast-icon {
+  font-size: 52px;
+  margin-bottom: 8px;
+  animation: ctBounce 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both;
+}
+
+@keyframes ctBounce {
+  from { transform: scale(0.4) rotate(-15deg); opacity: 0; }
+  to   { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+/* Stars */
+.ct-toast-stars {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  margin-bottom: 16px;
+}
+
+.ct-toast-star {
+  color: var(--tier-color);
+  font-size: 18px;
+  opacity: 0;
+  animation: ctStarIn 0.4s ease forwards;
+}
+
+@keyframes ctStarIn {
+  from { opacity: 0; transform: scale(0) rotate(-30deg); }
+  to   { opacity: 1; transform: scale(1) rotate(0); }
+}
+
+/* Title */
+.ct-toast-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--tier-color);
+  margin: 0 0 8px;
+  letter-spacing: -0.4px;
+}
+
+/* Subtitle */
+.ct-toast-sub {
+  font-size: 14px;
+  color: rgba(255,255,255,0.5);
+  line-height: 1.6;
+  margin: 0 0 24px;
+}
+.ct-toast-sub strong {
+  color: rgba(255,255,255,0.85);
+  font-weight: 600;
+}
+
+/* Stats row */
+.ct-toast-stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 12px;
+  padding: 16px 24px;
+  margin-bottom: 18px;
+}
+
+.ct-toast-stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.ct-ts-val {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--tier-color);
+  letter-spacing: -0.5px;
+}
+
+.ct-ts-label {
+  font-size: 11px;
+  color: rgba(255,255,255,0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.ct-toast-stat-div {
+  width: 1px;
+  height: 32px;
+  background: rgba(255,255,255,0.08);
+  flex-shrink: 0;
+}
+
+/* Email sent note */
+.ct-toast-sent {
+  font-size: 13px;
+  color: rgba(255,255,255,0.35);
+  margin: 0;
+}
+
+/* Loading state for button */
+.dashboard-actions button.loading {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ─── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .ct-toast {
+    margin: 0 16px;
+    padding: 28px 24px 24px;
+  }
+  .ct-toast-title {
+    font-size: 19px;
+  }
+  .ct-toast-stats {
+    padding: 14px 16px;
+  }
+  .ct-ts-val {
+    font-size: 18px;
+  }
+}
