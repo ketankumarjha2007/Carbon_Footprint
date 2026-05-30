@@ -6,8 +6,6 @@ import Emission from "../models/emissionModel.js";
 import CertificateLog from "../models/certificateLogModel.js";
 
 const router = express.Router();
-
-// ─── Tier Definitions ────────────────────────────────────────────────────────
 const TIERS = {
   bronze: {
     name: "Bronze",
@@ -106,8 +104,6 @@ const TIERS = {
     starCount: 5,
   },
 };
-
-// ─── Helper: Determine Tier ───────────────────────────────────────────────────
 function getTier(reduction) {
   if (reduction >= 50) return TIERS.platinum;
   if (reduction >= 25) return TIERS.gold;
@@ -115,8 +111,6 @@ function getTier(reduction) {
   if (reduction >= 1)  return TIERS.bronze;
   return null;
 }
-
-// ─── PDF Helpers ──────────────────────────────────────────────────────────────
 function fc(doc, hex, alpha = 1) { doc.fillColor(hex, alpha); }
 function sc(doc, hex) { doc.strokeColor(hex); }
 
@@ -408,7 +402,7 @@ function buildEmailHtml({ name, monthName, year, carbonSaved, reduction, tier })
         <!-- CTA -->
         <tr>
           <td style="padding:0 40px 36px;text-align:center">
-            <a href="https://carbontrack.app/dashboard" style="display:inline-block;background:${c.header};color:${c.badgeText};font-size:15px;font-weight:600;padding:14px 36px;border-radius:10px;text-decoration:none;letter-spacing:-0.2px">View Dashboard</a>
+            <a href="https://carbon-footprint-three-psi.vercel.app/dashboard" style="display:inline-block;background:${c.header};color:${c.badgeText};font-size:15px;font-weight:600;padding:14px 36px;border-radius:10px;text-decoration:none;letter-spacing:-0.2px">View Dashboard</a>
           </td>
         </tr>
 
@@ -461,8 +455,6 @@ router.post("/check-and-send", async (req, res) => {
     res.status(500).json({ success: false, message: err?.message || "Auto certificate check failed" });
   }
 });
-
-// ─── Core Logic (shared by both routes) ──────────────────────────────────────
 async function buildAndSendCertificate({ userId, email, name, autoCheck = false }) {
   const data = await Emission.find({ userId }).sort({ createdAt: -1 });
   if (!data.length) {
@@ -496,8 +488,6 @@ async function buildAndSendCertificate({ userId, email, name, autoCheck = false 
         : "You haven't reduced your carbon footprint enough yet. Keep tracking!",
     };
   }
-
-  // ── Deduplication: auto-check only sends once per month per user ───────────
   if (autoCheck) {
     const alreadySent = await CertificateLog.findOne({
       userId,
@@ -515,7 +505,6 @@ async function buildAndSendCertificate({ userId, email, name, autoCheck = false 
 
   const monthName = now.toLocaleString("default", { month: "long" });
 
-  // ── Build PDF ──────────────────────────────────────────────────────────────
   const doc = new PDFDocument({ layout: "landscape", size: "A4", margin: 0 });
   const buffers = [];
   doc.on("data", chunk => buffers.push(chunk));
