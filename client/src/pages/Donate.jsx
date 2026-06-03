@@ -1,12 +1,19 @@
 import "../styles/Donate.css";
 import { useEffect, useState } from "react";
 import Particles from "react-tsparticles";
+import { auth } from "../firebase";
 import Confetti from "react-confetti";
 import { jsPDF } from "jspdf";
 
 function Donate({ user }) {
-  const customerName = user?.name || "Carbon User";
-  const customerEmail = user?.email || "";
+  const firebaseUser = auth.currentUser;
+
+  const customerName =
+    firebaseUser?.displayName ||
+    "Carbon User";
+
+  const customerEmail =
+    firebaseUser?.email || "";
 
   const [showConfetti, setShowConfetti] = useState(false);
 
@@ -30,7 +37,6 @@ function Donate({ user }) {
       }
     });
   }, []);
-
   const generateBill = (amount, paymentId = null) => {
     const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
     const W = 210;
@@ -48,19 +54,15 @@ function Donate({ user }) {
       minute: "2-digit",
       second: "2-digit",
     });
-
-    // ── Colour Palette ──────────────────────────────────────────────
-    const BG    = [8, 20, 10];
+    const BG = [8, 20, 10];
     const PANEL = [12, 38, 18];
-    const LEAF  = [22, 120, 55];
-    const GOLD  = [200, 168, 75];
+    const LEAF = [22, 120, 55];
+    const GOLD = [200, 168, 75];
     const WHITE = [255, 255, 255];
     const SMOKE = [120, 145, 120];
-    const DIM   = [70, 95, 70];
+    const DIM = [70, 95, 70];
     const GREEN = [74, 222, 128];
-    const CARD  = [18, 50, 24];
-
-    // ── Background ──────────────────────────────────────────────────
+    const CARD = [18, 50, 24];
     doc.setFillColor(...BG);
     doc.rect(0, 0, W, H, "F");
 
@@ -68,8 +70,6 @@ function Donate({ user }) {
     doc.setFillColor(...LEAF);
     doc.rect(0, 0, 3, H, "F");
     doc.rect(W - 3, 0, 3, H, "F");
-
-    // ── Header Panel ────────────────────────────────────────────────
     doc.setFillColor(...PANEL);
     doc.rect(0, 0, W, 54, "F");
 
@@ -121,8 +121,6 @@ function Donate({ user }) {
     doc.setFontSize(7);
     doc.setTextColor(...BG);
     doc.text(txnId, W - 46, 38.5, { align: "center" });
-
-    // ── Info Cards Row ───────────────────────────────────────────────
     const ROW1 = 62;
     const COL_L = 10;
     const COL_R = 110;
@@ -169,8 +167,8 @@ function Donate({ user }) {
     doc.text("PAYMENT DETAILS", COL_R + 7, ROW1 + 8);
 
     const details = [
-      ["Date",   dateStr],
-      ["Time",   timeStr],
+      ["Date", dateStr],
+      ["Time", timeStr],
       ["Status", "SUCCESS"],
       ["Method", "Razorpay / UPI"],
     ];
@@ -187,8 +185,6 @@ function Donate({ user }) {
       doc.setTextColor(...color);
       doc.text(val, COL_R + CW - 3, ry, { align: "right" });
     });
-
-    // ── Line Items Table ─────────────────────────────────────────────
     const TY = ROW1 + 44;
 
     doc.setFillColor(...GOLD);
@@ -211,8 +207,6 @@ function Donate({ user }) {
       doc.setTextColor(...GOLD);
       doc.text(h, cols[i] + 2, TY + 16.5);
     });
-
-    // Table data row
     doc.setFillColor(14, 34, 18);
     doc.rect(COL_L, TY + 20, W - 20, 14, "F");
 
@@ -239,13 +233,11 @@ function Donate({ user }) {
 
     doc.setFillColor(...GOLD);
     doc.rect(COL_L, TY + 34, W - 20, 0.3, "F");
-
-    // ── Subtotals ────────────────────────────────────────────────────
     const SY = TY + 42;
     [
-      ["Subtotal",     `Rs. ${amount}`],
+      ["Subtotal", `Rs. ${amount}`],
       ["Platform Fee", "Rs. 0"],
-      ["GST / Tax",    "Included"],
+      ["GST / Tax", "Included"],
     ].forEach(([label, val], i) => {
       doc.setFont("helvetica", "normal");
       doc.setFontSize(8.5);
@@ -254,8 +246,6 @@ function Donate({ user }) {
       doc.setTextColor(...SMOKE);
       doc.text(val, W - 10, SY + i * 8, { align: "right" });
     });
-
-    // ── Total Bar ────────────────────────────────────────────────────
     const TOT_Y = SY + 28;
     doc.setFillColor(...LEAF);
     doc.roundedRect(100, TOT_Y, W - 110, 22, 3, 3, "F");
@@ -267,22 +257,20 @@ function Donate({ user }) {
 
     doc.setFontSize(17);
     doc.text(`Rs. ${amount}`, W - 10, TOT_Y + 16, { align: "right" });
-
-    // ── Impact Section ───────────────────────────────────────────────
     const IMP_Y = TOT_Y + 28;
     doc.setFont("helvetica", "bold");
     doc.setFontSize(7);
     doc.setTextColor(...GOLD);
     doc.text("YOUR ENVIRONMENTAL IMPACT", COL_L, IMP_Y);
 
-    const co2     = (amount / 100) * 21;
-    const water   = (amount / 100) * 450;
+    const co2 = (amount / 100) * 21;
+    const water = (amount / 100) * 450;
     const habitat = amount / 100;
 
     const impacts = [
-      ["CO2 Offset",       `~${co2} kg/yr`],
-      ["Water Saved",      `~${water} L`],
-      ["Habitat Created",  `${habitat} sq.m`],
+      ["CO2 Offset", `~${co2} kg/yr`],
+      ["Water Saved", `~${water} L`],
+      ["Habitat Created", `${habitat} sq.m`],
     ];
     impacts.forEach(([label, val], i) => {
       const ix = COL_L + i * 64;
@@ -299,8 +287,6 @@ function Donate({ user }) {
       doc.setTextColor(...DIM);
       doc.text(label, ix + 30, IMP_Y + 20, { align: "center" });
     });
-
-    // ── Transaction ID Row ───────────────────────────────────────────
     const TXN_Y = IMP_Y + 30;
     doc.setFillColor(...CARD);
     doc.roundedRect(COL_L, TXN_Y, W - 20, 12, 2, 2, "F");
@@ -314,8 +300,6 @@ function Donate({ user }) {
     doc.setFontSize(9);
     doc.setTextColor(...GOLD);
     doc.text(txnId, COL_L + 4, TXN_Y + 10);
-
-    // ── Footer ───────────────────────────────────────────────────────
     doc.setFillColor(...PANEL);
     doc.rect(0, H - 20, W, 20, "F");
 
