@@ -46,13 +46,10 @@ function TierToast({ tier, reduction, carbonSaved, onClose }) {
     </div>
   );
 }
-
-// ─── Utility: is today the last day of the current month? ────────────────────
 function isLastDayOfMonth() {
   const today    = new Date();
   const tomorrow = new Date(today);
   tomorrow.setDate(today.getDate() + 1);
-  // If tomorrow is in a different month, today is the last day
   return tomorrow.getMonth() !== today.getMonth();
 }
 
@@ -78,8 +75,6 @@ function Dashboard() {
 
       const name = user.displayName ? user.displayName.split(" ")[0] : "User";
       setUserName(name);
-
-      // ── Fetch emissions ──────────────────────────────────────────────────
       fetch(`https://carbon-footprint-1-a5ae.onrender.com/api/emission/${user.uid}`)
         .then(r => r.json())
         .then(data => {
@@ -97,8 +92,6 @@ function Dashboard() {
           setMonthCarbon(month.toFixed(2));
         })
         .catch(err => console.log("Emission fetch error:", err));
-
-      // ── Fetch stats ──────────────────────────────────────────────────────
       fetch(`https://carbon-footprint-1-a5ae.onrender.com/api/emission/stats/${user.uid}`)
         .then(r => r.json())
         .then(data => {
@@ -108,21 +101,16 @@ function Dashboard() {
           setLevel(data.level || "Beginner");
         })
         .catch(err => console.log("Stats fetch error:", err));
-
-      // ── Auto certificate: only on the last day of the month, once per session ──
       if (!autoCheckDone.current) {
         autoCheckDone.current = true;
 
         if (isLastDayOfMonth()) {
           autoCheckCertificate(user);
         }
-        // If not the last day, silently skip — no API call made at all
       }
     });
     return () => unsubscribe();
   }, []);
-
-  // ── Auto check: fires only on last day of month, backend deduplicates ────────
   const autoCheckCertificate = async (user) => {
     try {
       const res = await fetch(
@@ -147,11 +135,8 @@ function Dashboard() {
       }
     } catch (err) {
       console.log("Auto certificate check failed:", err);
-      // Silent fail — don't bother the user
     }
   };
-
-  // ── Manual "Get Certificate" button — always sends instantly ─────────────
   const sendCertificateEmail = async () => {
     try {
       const user = auth.currentUser;
