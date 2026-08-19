@@ -15,7 +15,7 @@ import Dashboard from "./pages/Dashboard";
 import Calculator from "./pages/calculator";
 import Tracker from "./component/Tracker";
 import NotFound from "./pages/Notfound";
-import OfflineGame from "./component/OfflineGame";
+import OfflineGame from "./component/offlineGame";
 
 function App() {
 
