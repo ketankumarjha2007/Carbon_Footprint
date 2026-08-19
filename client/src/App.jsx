@@ -11,121 +11,185 @@ import Donate from "./pages/Donate";
 import Contact from "./pages/Contact";
 import Footer from "./component/Footer";
 import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard"
-import Calculator from "./pages/calculator"
+import Dashboard from "./pages/Dashboard";
+import Calculator from "./pages/calculator";
 import Tracker from "./component/Tracker";
 import NotFound from "./pages/Notfound";
+import OfflineGame from "./component/OfflineGame";
 
 function App() {
 
-const [user,setUser] = useState(null);
+    const [user, setUser] = useState(null);
 
-useEffect(()=>{
+    // Online / Offline state
+    const [isOnline, setIsOnline] = useState(
+        navigator.onLine
+    );
 
-const unsubscribe = onAuthStateChanged(auth,(currentUser)=>{
-setUser(currentUser);
-});
+    // Firebase authentication
+    useEffect(() => {
 
-return ()=>unsubscribe();
+        const unsubscribe = onAuthStateChanged(
+            auth,
+            (currentUser) => {
+                setUser(currentUser);
+            }
+        );
 
-},[]);
+        return () => unsubscribe();
 
-return (
-  <Routes>
+    }, []);
 
-    {/* Pages with Navbar + Footer */}
-    <Route
-      path="/"
-      element={
-        <>
-          <Navbar user={user} />
-          <Home />
-          <Footer />
-        </>
-      }
-    />
+    // Detect internet connection
+    useEffect(() => {
 
-    <Route
-      path="/about"
-      element={
-        <>
-          <Navbar user={user} />
-          <About />
-          <Footer />
-        </>
-      }
-    />
+        const handleOnline = () => {
+            setIsOnline(true);
+        };
 
-    <Route
-      path="/donate"
-      element={
-        <>
-          <Navbar user={user} />
-          <Donate />
-          <Footer />
-        </>
-      }
-    />
+        const handleOffline = () => {
+            setIsOnline(false);
+        };
 
-    <Route
-      path="/contact"
-      element={
-        <>
-          <Navbar user={user} />
-          <Contact />
-          <Footer />
-        </>
-      }
-    />
+        window.addEventListener(
+            "online",
+            handleOnline
+        );
 
-    <Route
-      path="/login"
-      element={
-        <>
-          <Navbar user={user} />
-          <Login />
-          <Footer />
-        </>
-      }
-    />
+        window.addEventListener(
+            "offline",
+            handleOffline
+        );
 
-    <Route
-      path="/dashboard"
-      element={
-        <>
-          <Navbar user={user} />
-          <Dashboard />
-          <Footer />
-        </>
-      }
-    />
+        return () => {
 
-    <Route
-      path="/calculator"
-      element={
-        <>
-          <Navbar user={user} />
-          <Calculator />
-          <Footer />
-        </>
-      }
-    />
+            window.removeEventListener(
+                "online",
+                handleOnline
+            );
 
-    <Route
-      path="/tracker"
-      element={
-        <>
-          <Navbar user={user} />
-          <Tracker />
-          <Footer />
-        </>
-      }
-    />
-    <Route path="*" element={<NotFound />} />
+            window.removeEventListener(
+                "offline",
+                handleOffline
+            );
 
-  </Routes>
-);
+        };
 
+    }, []);
+
+    // If internet is unavailable,
+    // show the offline game
+    if (!isOnline) {
+        return <OfflineGame />;
+    }
+
+    return (
+        <Routes>
+
+            {/* Home */}
+            <Route
+                path="/"
+                element={
+                    <>
+                        <Navbar user={user} />
+                        <Home />
+                        <Footer />
+                    </>
+                }
+            />
+
+            {/* About */}
+            <Route
+                path="/about"
+                element={
+                    <>
+                        <Navbar user={user} />
+                        <About />
+                        <Footer />
+                    </>
+                }
+            />
+
+            {/* Donate */}
+            <Route
+                path="/donate"
+                element={
+                    <>
+                        <Navbar user={user} />
+                        <Donate />
+                        <Footer />
+                    </>
+                }
+            />
+
+            {/* Contact */}
+            <Route
+                path="/contact"
+                element={
+                    <>
+                        <Navbar user={user} />
+                        <Contact />
+                        <Footer />
+                    </>
+                }
+            />
+
+            {/* Login */}
+            <Route
+                path="/login"
+                element={
+                    <>
+                        <Navbar user={user} />
+                        <Login />
+                        <Footer />
+                    </>
+                }
+            />
+
+            {/* Dashboard */}
+            <Route
+                path="/dashboard"
+                element={
+                    <>
+                        <Navbar user={user} />
+                        <Dashboard />
+                        <Footer />
+                    </>
+                }
+            />
+
+            {/* Calculator */}
+            <Route
+                path="/calculator"
+                element={
+                    <>
+                        <Navbar user={user} />
+                        <Calculator />
+                        <Footer />
+                    </>
+                }
+            />
+
+            {/* Tracker */}
+            <Route
+                path="/tracker"
+                element={
+                    <>
+                        <Navbar user={user} />
+                        <Tracker />
+                        <Footer />
+                    </>
+                }
+            />
+
+            {/* Not Found */}
+            <Route
+                path="*"
+                element={<NotFound />}
+            />
+
+        </Routes>
+    );
 }
 
 export default App;
