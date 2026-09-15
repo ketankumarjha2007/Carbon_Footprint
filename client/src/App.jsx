@@ -16,6 +16,7 @@ import Calculator from "./pages/calculator";
 import Tracker from "./component/Tracker";
 import NotFound from "./pages/Notfound";
 import OfflineGame from "./component/offlineGame";
+import Chatbot from "./component/chatbot/Chatbot";
 
 function App() {
 
@@ -84,111 +85,117 @@ function App() {
     }
 
     return (
-        <Routes>
+        <>
+            <Routes>
 
-            {/* Home */}
-            <Route
-                path="/"
-                element={
-                    <>
-                        <Navbar user={user} />
-                        <Home />
-                        <Footer />
-                    </>
-                }
-            />
+                {/* Home */}
+                <Route
+                    path="/"
+                    element={
+                        <>
+                            <Navbar user={user} />
+                            <Home />
+                            <Footer />
+                        </>
+                    }
+                />
 
-            {/* About */}
-            <Route
-                path="/about"
-                element={
-                    <>
-                        <Navbar user={user} />
-                        <About />
-                        <Footer />
-                    </>
-                }
-            />
+                {/* About */}
+                <Route
+                    path="/about"
+                    element={
+                        <>
+                            <Navbar user={user} />
+                            <About />
+                            <Footer />
+                        </>
+                    }
+                />
 
-            {/* Donate */}
-            <Route
-                path="/donate"
-                element={
-                    <>
-                        <Navbar user={user} />
-                        <Donate />
-                        <Footer />
-                    </>
-                }
-            />
+                {/* Donate */}
+                <Route
+                    path="/donate"
+                    element={
+                        <>
+                            <Navbar user={user} />
+                            <Donate />
+                            <Footer />
+                        </>
+                    }
+                />
 
-            {/* Contact */}
-            <Route
-                path="/contact"
-                element={
-                    <>
-                        <Navbar user={user} />
-                        <Contact />
-                        <Footer />
-                    </>
-                }
-            />
+                {/* Contact */}
+                <Route
+                    path="/contact"
+                    element={
+                        <>
+                            <Navbar user={user} />
+                            <Contact />
+                            <Footer />
+                        </>
+                    }
+                />
 
-            {/* Login */}
-            <Route
-                path="/login"
-                element={
-                    <>
-                        <Navbar user={user} />
-                        <Login />
-                        <Footer />
-                    </>
-                }
-            />
+                {/* Login */}
+                <Route
+                    path="/login"
+                    element={
+                        <>
+                            <Navbar user={user} />
+                            <Login />
+                            <Footer />
+                        </>
+                    }
+                />
 
-            {/* Dashboard */}
-            <Route
-                path="/dashboard"
-                element={
-                    <>
-                        <Navbar user={user} />
-                        <Dashboard />
-                        <Footer />
-                    </>
-                }
-            />
+                {/* Dashboard */}
+                <Route
+                    path="/dashboard"
+                    element={
+                        <>
+                            <Navbar user={user} />
+                            <Dashboard />
+                            <Footer />
+                        </>
+                    }
+                />
 
-            {/* Calculator */}
-            <Route
-                path="/calculator"
-                element={
-                    <>
-                        <Navbar user={user} />
-                        <Calculator />
-                        <Footer />
-                    </>
-                }
-            />
+                {/* Calculator */}
+                <Route
+                    path="/calculator"
+                    element={
+                        <>
+                            <Navbar user={user} />
+                            <Calculator />
+                            <Footer />
+                        </>
+                    }
+                />
 
-            {/* Tracker */}
-            <Route
-                path="/tracker"
-                element={
-                    <>
-                        <Navbar user={user} />
-                        <Tracker />
-                        <Footer />
-                    </>
-                }
-            />
+                {/* Tracker */}
+                <Route
+                    path="/tracker"
+                    element={
+                        <>
+                            <Navbar user={user} />
+                            <Tracker />
+                            <Footer />
+                        </>
+                    }
+                />
 
-            {/* Not Found */}
-            <Route
-                path="*"
-                element={<NotFound />}
-            />
+                {/* Not Found */}
+                <Route
+                    path="*"
+                    element={<NotFound />}
+                />
 
-        </Routes>
+            </Routes>
+
+            {/* 🌱 NEW — Vasudha Assistant */}
+            <Chatbot />
+
+        </>
     );
 }
 
