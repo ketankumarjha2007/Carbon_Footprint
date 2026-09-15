@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:5000/api/chatbot";
+const API_URL = "https://carbon-footprint-1-a5ae.onrender.com/api/chatbot";
 
 const getUserLocation = () => {
     return new Promise((resolve) => {
