@@ -5,7 +5,6 @@ const chatWithBot = async (req, res) => {
     try {
         const { message, latitude, longitude } = req.body;
 
-        // Check if message exists
         if (!message || !message.trim()) {
             return res.status(400).json({
                 success: false,
@@ -15,18 +14,24 @@ const chatWithBot = async (req, res) => {
 
         let environmentData = null;
 
-        /*
-         * If the frontend provides location,
-         * get the current environmental data.
-         */
+        // Get live environmental data when location is available.
+        // If the environmental API fails, the chatbot should still work.
         if (latitude !== undefined && longitude !== undefined) {
-            environmentData = await getEnvironmentData(
-                latitude,
-                longitude
-            );
+            try {
+                environmentData = await getEnvironmentData(
+                    latitude,
+                    longitude
+                );
+            } catch (error) {
+                console.error(
+                    "Environment Data Error:",
+                    error.message
+                );
+
+                environmentData = null;
+            }
         }
 
-        // Generate chatbot response
         const response = getChatbotResponse(
             message,
             environmentData
