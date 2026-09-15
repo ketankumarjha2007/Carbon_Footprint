@@ -486,7 +486,7 @@ function Home() {
         <div className="hero-content">
 
           <div className="top-badge">
-            Carbon Karo Track — Welcome to CarbonTrack
+            Dharti Ko Samjho, Bhavishya Badlo — Welcome to Vasudha.
           </div>
 
           <h1>
@@ -497,7 +497,7 @@ function Home() {
           </h1>
 
           <p>
-            CarbonTrack delivers intelligent
+            VASUDHA delivers intelligent
             carbon analytics, live environmental
             monitoring, and sustainability
             insights through a real-time
@@ -668,12 +668,11 @@ function Home() {
               <div className="glass-card small-card">
 
                 <h3>
-                  Carbon Tracking
+                  Dharti Ka Digital Saathi
                 </h3>
 
                 <p>
-                  Measure and reduce emissions
-                  with precision.
+                  Your intelligent companion for a greener tomorrow.
                 </p>
 
               </div>

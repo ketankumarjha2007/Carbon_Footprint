@@ -48,7 +48,7 @@ function Navbar() {
 
       {/* LOGO */}
       <div className="logo">
-        <Link to="/"> CarbonTrack</Link>
+        <Link to="/"> Vasudha</Link>
       </div>
 
       {/* HAMBURGER */}
