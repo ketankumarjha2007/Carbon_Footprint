@@ -140,22 +140,22 @@ const getChatbotResponse = (
     */
 
     if (
-    containsPhrase(text, [
-        "thank you",
-        "thankyou",
-        "thanks",
-        "thank u",
-        "thankyou so much",
-        "thanks a lot",
-        "thank you so much"
-    ]) ||
-    containsAny(text, [
-        "thx",
-        "ty"
-    ])
-) {
-    return "You're very welcome! 🌱💚 I'm always happy to help you make greener decisions.";
-}
+        containsPhrase(text, [
+            "thank you",
+            "thankyou",
+            "thanks",
+            "thank u",
+            "thankyou so much",
+            "thanks a lot",
+            "thank you so much"
+        ]) ||
+        containsAny(text, [
+            "thx",
+            "ty"
+        ])
+    ) {
+        return "You're very welcome! 🌱💚 I'm always happy to help you make greener decisions.";
+    }
 
     /*
     ========================================================
@@ -208,7 +208,6 @@ const getChatbotResponse = (
     5. CURRENT AQI / AIR QUALITY
     ========================================================
     */
-
     if (
         containsAny(text, [
             "aqi"
@@ -233,11 +232,17 @@ const getChatbotResponse = (
             environmentData?.aqi !== undefined
         ) {
 
-            return `🌫️ Current AQI: ${Math.round(
-                environmentData.aqi
-            )}\n\nStatus: ${environmentData.aqiStatus}\n\nBased on the current reading, the air quality is ${getAqiCategory(
-                environmentData.aqi
-            )}.`;
+            const aqi =
+                Math.round(environmentData.aqi);
+
+            const category =
+                getAqiCategory(environmentData.aqi);
+
+            return `🌫️ Current AQI: ${aqi}
+
+Status: ${category}
+
+Based on the current reading, the air quality is ${category}.`;
         }
 
         return "🌫️ I couldn't retrieve the current AQI right now. Please try again.";
@@ -319,17 +324,12 @@ const getChatbotResponse = (
             const weather =
                 environmentData.weather;
 
-            return `🌤️ Current Weather\n\n🌡️ Temperature: ${
-                weather.temperature ?? "--"
-            }°C\n💧 Humidity: ${
-                weather.humidity ?? "--"
-            }%\n💨 Wind: ${
-                weather.windSpeed ?? "--"
-            } km/h\n☀️ UV Index: ${
-                weather.uvIndex ?? "--"
-            }\n☁️ Cloud Cover: ${
-                weather.cloudCover ?? "--"
-            }%`;
+            return `🌤️ Current Weather\n\n🌡️ Temperature: ${weather.temperature ?? "--"
+                }°C\n💧 Humidity: ${weather.humidity ?? "--"
+                }%\n💨 Wind: ${weather.windSpeed ?? "--"
+                } km/h\n☀️ UV Index: ${weather.uvIndex ?? "--"
+                }\n☁️ Cloud Cover: ${weather.cloudCover ?? "--"
+                }%`;
         }
 
         return "🌤️ I couldn't retrieve the current weather data.";
@@ -371,19 +371,13 @@ const getChatbotResponse = (
 
         if (p) {
 
-            return `🌫️ Current Air Pollutants\n\nPM2.5: ${
-                p.pm25 ?? "--"
-            } μg/m³\nPM10: ${
-                p.pm10 ?? "--"
-            } μg/m³\nCO: ${
-                p.carbonMonoxide ?? "--"
-            } μg/m³\nNO₂: ${
-                p.nitrogenDioxide ?? "--"
-            } μg/m³\nSO₂: ${
-                p.sulphurDioxide ?? "--"
-            } μg/m³\nO₃: ${
-                p.ozone ?? "--"
-            } μg/m³`;
+            return `🌫️ Current Air Pollutants\n\nPM2.5: ${p.pm25 ?? "--"
+                } μg/m³\nPM10: ${p.pm10 ?? "--"
+                } μg/m³\nCO: ${p.carbonMonoxide ?? "--"
+                } μg/m³\nNO₂: ${p.nitrogenDioxide ?? "--"
+                } μg/m³\nSO₂: ${p.sulphurDioxide ?? "--"
+                } μg/m³\nO₃: ${p.ozone ?? "--"
+                } μg/m³`;
         }
 
         return "🌫️ Pollutant data is currently unavailable.";
@@ -525,11 +519,10 @@ const getChatbotResponse = (
             environmentData?.latitude !== undefined &&
             environmentData?.longitude !== undefined
         ) {
-            return `📍 I'm using your current location to retrieve live environmental data.\n\nCurrent AQI: ${
-                environmentData.aqi !== null
+            return `📍 I'm using your current location to retrieve live environmental data.\n\nCurrent AQI: ${environmentData.aqi !== null
                     ? Math.round(environmentData.aqi)
                     : "--"
-            }`;
+                }`;
         }
 
         return "📍 I couldn't access your current location. Please allow location access in your browser.";
