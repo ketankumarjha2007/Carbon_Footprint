@@ -132,13 +132,6 @@ const getChatbotResponse = (
         return "Hello! 👋 I'm Vasudha Assistant 🌱. I can help you understand air quality, AQI, weather, outdoor activities, carbon footprint, electricity, sustainability and eco-friendly decisions.";
     }
 
-
-    /*
-    ========================================================
-    2. THANK YOU
-    ========================================================
-    */
-
     if (
         containsPhrase(text, [
             "thank you",
@@ -156,12 +149,6 @@ const getChatbotResponse = (
     ) {
         return "You're very welcome! 🌱💚 I'm always happy to help you make greener decisions.";
     }
-
-    /*
-    ========================================================
-    3. WHO ARE YOU / CAPABILITIES
-    ========================================================
-    */
 
     if (
         containsPhrase(text, [
@@ -181,13 +168,6 @@ const getChatbotResponse = (
     }
 
 
-    /*
-    ========================================================
-    4. AQI EXPLANATION
-    IMPORTANT: BEFORE CURRENT AQI
-    ========================================================
-    */
-
     if (
         containsPhrase(text, [
             "what is aqi",
@@ -201,13 +181,6 @@ const getChatbotResponse = (
     ) {
         return "🌫️ AQI stands for Air Quality Index. It is a numerical indicator used to communicate how clean or polluted the air is. Generally, a lower AQI indicates better air quality, while a higher AQI indicates greater pollution.";
     }
-
-
-    /*
-    ========================================================
-    5. CURRENT AQI / AIR QUALITY
-    ========================================================
-    */
     if (
         containsAny(text, [
             "aqi"
