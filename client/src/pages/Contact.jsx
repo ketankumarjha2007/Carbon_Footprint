@@ -50,7 +50,7 @@ function Contact() {
         <div className="contact-info">
           <h2>Let's Talk 🌿</h2>
           <p>
-            Have questions about CarbonTrack?
+            Have questions about VASUDHA?
             Want to collaborate or share ideas about sustainability?
             We'd love to hear from you.
           </p>

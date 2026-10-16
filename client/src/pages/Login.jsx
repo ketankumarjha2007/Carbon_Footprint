@@ -80,8 +80,8 @@ function Login() {
 
       <div className="login-box">
 
-        <h1>CarbonTrack</h1>
-        <p className="subtitle">Track your carbon footprint</p>
+        <h1>VASUDHA</h1>
+        <p className="subtitle">Track your Environmental Impact</p>
 
         {error && <p className="error">{error}</p>}
 

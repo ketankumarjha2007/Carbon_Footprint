@@ -23,7 +23,7 @@ export default function NotFound() {
         <h2>Page Not Found</h2>
 
         <p>
-          Looks like this page drifted away from the CarbonTrack universe.
+          Looks like this page drifted away from the VASUDHA universe.
           Let’s get you back on track.
         </p>
 

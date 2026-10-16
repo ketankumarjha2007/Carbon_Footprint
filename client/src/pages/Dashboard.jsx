@@ -194,7 +194,7 @@ function Dashboard() {
 
       <div className="dashboard-header">
         <h1>👋 Hi {userName}</h1>
-        <p>Welcome back to CarbonTrack</p>
+        <p>Welcome back to VASUDHA</p>
       </div>
 
       <div className="dashboard-cards">
