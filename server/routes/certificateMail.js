@@ -6,12 +6,39 @@ import Emission from "../models/emissionModel.js";
 import CertificateLog from "../models/certificateLogModel.js";
 
 const router = express.Router();
+
 const TIERS = {
+  // Participation tier — only issued on MANUAL "Get Certificate" clicks
+  // when the user hasn't reduced enough to earn a real tier.
+  seedling: {
+    name: "Seedling",
+    minReduction: 0,
+    maxReduction: 1,
+    emoji: "🌱",
+    pdfMedal: "SEEDLING",
+    tagline: "Every journey begins with a single seed — keep growing.",
+    bg: "#06140B",
+    glow1: "#0F2E1A",
+    glow2: "#14532D",
+    border1: "#4ADE80",
+    border2: "#BBF7D0",
+    borderDark: "#166534",
+    accent: "#4ADE80",
+    accentLight: "#BBF7D0",
+    statBg: "#0F2E1A",
+    statBorder: "#166534",
+    statHighBg: "#14532D",
+    statHighBorder: "#4ADE80",
+    leafColor: "#4ADE80",
+    badgeColor: "#4ADE80",
+    badgeBg: "#0F2E1A",
+    starCount: 1,
+  },
   bronze: {
     name: "Bronze",
     minReduction: 1,
     maxReduction: 10,
-    emoji: "🥉",  
+    emoji: "🥉",
     pdfMedal: "BRONZE",
     tagline: "Every step counts — your journey has begun.",
     bg: "#1A0F00",
@@ -104,6 +131,8 @@ const TIERS = {
     starCount: 5,
   },
 };
+
+// Real tiers only (Seedling is a manual-only fallback, never returned here)
 function getTier(reduction) {
   if (reduction >= 50) return TIERS.platinum;
   if (reduction >= 25) return TIERS.gold;
@@ -111,6 +140,7 @@ function getTier(reduction) {
   if (reduction >= 1)  return TIERS.bronze;
   return null;
 }
+
 function fc(doc, hex, alpha = 1) { doc.fillColor(hex, alpha); }
 function sc(doc, hex) { doc.strokeColor(hex); }
 
@@ -158,7 +188,6 @@ function statBox(doc, cx, cy, label, value, highlight, t) {
   sc(doc, highlight ? t.statHighBorder : t.statBorder);
   doc.lineWidth(highlight ? 1.2 : 0.6).roundedRect(x, y, bw, bh, 6).fillAndStroke();
 
-  // "kg CO2" — plain ASCII, no Unicode subscript
   fc(doc, t.accentLight, 0.7);
   doc.font("Helvetica").fontSize(7.5).text("kg CO2", x, y + 9, { width: bw, align: "center" });
 
@@ -202,7 +231,7 @@ function drawCertificate(doc, { name, monthName, year, previousTotal, currentTot
   cornerArc(doc, mg + 4, H - mg - 4, 1, -1, t);
   cornerArc(doc, W - mg - 4, H - mg - 4, -1, -1, t);
 
-  // 6. Logo leaf (drawn as path — no emoji)
+  // 6. Logo leaf
   const logoTop = 42;
   fc(doc, t.leafColor);
   doc.save();
@@ -216,7 +245,7 @@ function drawCertificate(doc, { name, monthName, year, previousTotal, currentTot
   doc.font("Helvetica-Bold").fontSize(12)
     .text("C A R B O N T R A C K", 0, logoTop + 36, { width: W, align: "center" });
 
-  // 8. Tier badge pill — uses pdfMedal (text only, no emoji)
+  // 8. Tier badge pill
   const tierBadgeY = logoTop + 56;
   const tierLabel = `* ${t.pdfMedal} TIER *`;
   const pillW = 160, pillH = 22;
@@ -259,17 +288,23 @@ function drawCertificate(doc, { name, monthName, year, previousTotal, currentTot
   // 14. Achievement text
   const achY = tagY + 20;
   fc(doc, "#F0EDE4");
+  const achLine1 = t.name === "Seedling"
+    ? "For beginning a sustainability journey and tracking carbon emissions during"
+    : "For demonstrating outstanding commitment to environmental responsibility during";
+  const achLine2 = t.name === "Seedling"
+    ? `${monthName} ${year} — every great forest starts with a single seed.`
+    : `${monthName} ${year} — achieving measurable carbon reduction through sustainable choices.`;
   doc.font("Helvetica").fontSize(9.5)
-    .text(`For demonstrating outstanding commitment to environmental responsibility during`, 0, achY, { width: W, align: "center" })
-    .text(`${monthName} ${year} — achieving measurable carbon reduction through sustainable choices.`, 0, achY + 14, { width: W, align: "center" });
+    .text(achLine1, 0, achY, { width: W, align: "center" })
+    .text(achLine2, 0, achY + 14, { width: W, align: "center" });
 
-  // 15. Stat boxes (no Unicode subscript in unit label)
+  // 15. Stat boxes
   const statsCY = achY + 62;
   statBox(doc, W / 2 - 200, statsCY, "PREVIOUS MONTH", previousTotal.toFixed(2), false, t);
   statBox(doc, W / 2,        statsCY, "CARBON REDUCED",  carbonSaved.toFixed(2),   true,  t);
   statBox(doc, W / 2 + 200, statsCY, "CURRENT MONTH",  currentTotal.toFixed(2),  false, t);
 
-  // 16. Reduction % badge (circle with text — no emoji)
+  // 16. Reduction % badge
   const bx = W / 2 + 320;
   fc(doc, t.accent);
   doc.circle(bx, statsCY, 30).fill();
@@ -279,7 +314,7 @@ function drawCertificate(doc, { name, monthName, year, previousTotal, currentTot
   doc.font("Helvetica").fontSize(7)
     .text("REDUCED", bx - 30, statsCY + 8, { width: 60, align: "center" });
 
-  // 17. Stars row — drawn as polygons, not Unicode stars
+  // 17. Stars row
   const starsY = statsCY + 42;
   tierStars(doc, W / 2, starsY, t);
 
@@ -331,12 +366,16 @@ function drawCertificate(doc, { name, monthName, year, previousTotal, currentTot
 
 function buildEmailHtml({ name, monthName, year, carbonSaved, reduction, tier }) {
   const tierColors = {
+    Seedling: { bg: "#06140B", header: "#4ADE80", accent: "#BBF7D0", badge: "#4ADE80", badgeText: "#06140B" },
     Bronze:   { bg: "#1A0F00", header: "#CD7F32", accent: "#F0C080", badge: "#CD7F32", badgeText: "#3D1F00" },
     Silver:   { bg: "#0D0D14", header: "#C0C0C8", accent: "#E8E8F0", badge: "#C0C0C8", badgeText: "#0D0D14" },
     Gold:     { bg: "#0B2818", header: "#D4A853", accent: "#F5D78E", badge: "#D4A853", badgeText: "#0B2818" },
     Platinum: { bg: "#050B14", header: "#8ECAE6", accent: "#CAF0F8", badge: "#8ECAE6", badgeText: "#050B14" },
   };
   const c = tierColors[tier.name];
+  const intro = tier.name === "Seedling"
+    ? `Thank you for tracking your footprint with VASUDHA! You've earned a <strong style="color:${c.accent}">Seedling</strong> certificate. Reduce your emissions by 1% or more compared to last month to unlock Bronze, Silver, Gold and Platinum tiers.`
+    : `Congratulations on earning your <strong style="color:${c.accent}">${tier.name} Tier</strong> VASUDHA certificate! Your dedication to reducing your environmental impact is making a real difference.`;
   return `
 <!DOCTYPE html>
 <html>
@@ -364,8 +403,7 @@ function buildEmailHtml({ name, monthName, year, carbonSaved, reduction, tier })
               Hi <strong style="color:${c.accent}">${name}</strong>,
             </p>
             <p style="color:rgba(255,255,255,0.65);font-size:15px;line-height:1.7;margin:0 0 28px">
-              Congratulations on earning your <strong style="color:${c.accent}">${tier.name} Tier</strong> VASUDHA certificate!
-              Your dedication to reducing your environmental impact is making a real difference.
+              ${intro}
             </p>
 
             <!-- Stats block -->
@@ -410,7 +448,7 @@ function buildEmailHtml({ name, monthName, year, carbonSaved, reduction, tier })
         <tr>
           <td style="padding:24px 40px;border-top:1px solid rgba(255,255,255,0.06);text-align:center">
             <p style="color:rgba(255,255,255,0.2);font-size:12px;margin:0 0 6px">&copy; ${year} VASUDHA &middot; Making sustainability measurable</p>
-            <p style="color:rgba(255,255,255,0.15);font-size:11px;margin:0">You received this because you reduced your carbon footprint this month.</p>
+            <p style="color:rgba(255,255,255,0.15);font-size:11px;margin:0">You received this because you requested a certificate or reduced your carbon footprint this month.</p>
           </td>
         </tr>
 
@@ -420,6 +458,7 @@ function buildEmailHtml({ name, monthName, year, carbonSaved, reduction, tier })
 </body>
 </html>`;
 }
+
 router.post("/send-certificate", async (req, res) => {
   try {
     const { userId, email, name } = req.body;
@@ -431,7 +470,8 @@ router.post("/send-certificate", async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid email address" });
     }
 
-    // autoCheck: false → skips deduplication, always sends immediately
+    // autoCheck: false → manual click. No deduplication, and users who haven't
+    // earned a real tier still receive a Seedling participation certificate.
     const result = await buildAndSendCertificate({ userId, email, name, autoCheck: false });
     res.json(result);
   } catch (err) {
@@ -447,7 +487,7 @@ router.post("/check-and-send", async (req, res) => {
       return res.status(400).json({ success: false, message: "Missing fields" });
     }
 
-    // autoCheck: true → deduplication enabled
+    // autoCheck: true → month-end automation. Deduplicated, real tiers only.
     const result = await buildAndSendCertificate({ userId, email, name, autoCheck: true });
     res.json(result);
   } catch (err) {
@@ -455,10 +495,11 @@ router.post("/check-and-send", async (req, res) => {
     res.status(500).json({ success: false, message: err?.message || "Auto certificate check failed" });
   }
 });
+
 async function buildAndSendCertificate({ userId, email, name, autoCheck = false }) {
   const data = await Emission.find({ userId }).sort({ createdAt: -1 });
   if (!data.length) {
-    return { success: false, message: "No emission data found" };
+    return { success: false, message: "No emission data found. Add some activity first!" };
   }
 
   const now = new Date();
@@ -477,17 +518,21 @@ async function buildAndSendCertificate({ userId, email, name, autoCheck = false 
 
   const carbonSaved = Math.max(previousTotal - currentTotal, 0);
   const reduction   = previousTotal > 0 ? (carbonSaved / previousTotal) * 100 : 0;
-  const tier        = getTier(reduction);
+  let tier          = getTier(reduction);
 
   if (!tier) {
-    return {
-      success: false,
-      eligible: false,
-      message: autoCheck
-        ? "No reduction this month — no certificate issued."
-        : "You haven't reduced your carbon footprint enough yet. Keep tracking!",
-    };
+    if (autoCheck) {
+      // Month-end automation stays strict: real tiers only.
+      return {
+        success: false,
+        eligible: false,
+        message: "No reduction this month — no certificate issued.",
+      };
+    }
+    // Manual click: always give the user a certificate.
+    tier = TIERS.seedling;
   }
+
   if (autoCheck) {
     const alreadySent = await CertificateLog.findOne({
       userId,
@@ -533,9 +578,9 @@ async function buildAndSendCertificate({ userId, email, name, autoCheck = false 
   const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
   const mail = new SibApiV3Sdk.SendSmtpEmail();
 
-  mail.sender     = { name: "VASUDHA", email: process.env.SENDER_EMAIL };
-  mail.to         = [{ email, name }];
-  mail.subject    = `${tier.emoji} Your ${tier.name} Tier Certificate — ${monthName} ${currentYear}`;
+  mail.sender      = { name: "VASUDHA", email: process.env.SENDER_EMAIL };
+  mail.to          = [{ email, name }];
+  mail.subject     = `${tier.emoji} Your ${tier.name} Tier Certificate — ${monthName} ${currentYear}`;
   mail.htmlContent = buildEmailHtml({ name, monthName, year: currentYear, carbonSaved, reduction, tier });
   mail.attachment  = [{
     name:    `VASUDHA_${tier.name}_${monthName}_${currentYear}.pdf`,
@@ -543,6 +588,7 @@ async function buildAndSendCertificate({ userId, email, name, autoCheck = false 
   }];
 
   await apiInstance.sendTransacEmail(mail);
+
   if (autoCheck) {
     await CertificateLog.create({
       userId,
@@ -553,12 +599,13 @@ async function buildAndSendCertificate({ userId, email, name, autoCheck = false 
   }
 
   return {
-    success:     true,
-    eligible:    true,
-    tier:        tier.name,
-    reduction:   Math.round(reduction),
-    carbonSaved: carbonSaved.toFixed(2),
-    message:     `${tier.emoji} ${tier.name} tier certificate sent to ${email}!`,
+    success:       true,
+    eligible:      true,
+    participation: tier.name === "Seedling",
+    tier:          tier.name,
+    reduction:     Math.round(reduction),
+    carbonSaved:   carbonSaved.toFixed(2),
+    message:       `${tier.emoji} ${tier.name} certificate sent to ${email}!`,
   };
 }
 

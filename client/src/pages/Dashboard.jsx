@@ -9,9 +9,10 @@ const TIER_CONFIG = {
   Gold:     { color: "#D4A853", bg: "#0B2818", border: "#D4A853", emoji: "🥇", stars: 4 },
   Silver:   { color: "#C0C0C8", bg: "#0D0D14", border: "#C0C0C8", emoji: "🥈", stars: 3 },
   Bronze:   { color: "#CD7F32", bg: "#1A0F00", border: "#CD7F32", emoji: "🥉", stars: 2 },
+  Seedling: { color: "#4ADE80", bg: "#06140B", border: "#4ADE80", emoji: "🌱", stars: 1 },
 };
 
-function TierToast({ tier, reduction, carbonSaved, onClose }) {
+function TierToast({ tier, reduction, carbonSaved, participation, onClose }) {
   const cfg = TIER_CONFIG[tier] || TIER_CONFIG.Gold;
   useEffect(() => {
     const t = setTimeout(onClose, 8000);
@@ -28,8 +29,16 @@ function TierToast({ tier, reduction, carbonSaved, onClose }) {
             <span key={i} className="ct-toast-star" style={{ animationDelay: `${i * 0.1}s` }}>★</span>
           ))}
         </div>
-        <h3 className="ct-toast-title">{tier} Certificate Earned!</h3>
-        <p className="ct-toast-sub">You reduced your carbon footprint by <strong>{reduction}%</strong> this month</p>
+        <h3 className="ct-toast-title">
+          {participation ? "Seedling Certificate Sent!" : `${tier} Certificate Earned!`}
+        </h3>
+        <p className="ct-toast-sub">
+          {participation ? (
+            <>Reduce your footprint by <strong>1%+</strong> vs last month to unlock Bronze and above</>
+          ) : (
+            <>You reduced your carbon footprint by <strong>{reduction}%</strong> this month</>
+          )}
+        </p>
         <div className="ct-toast-stats">
           <div className="ct-toast-stat">
             <span className="ct-ts-val">{carbonSaved} kg</span>
@@ -46,6 +55,7 @@ function TierToast({ tier, reduction, carbonSaved, onClose }) {
     </div>
   );
 }
+
 function isLastDayOfMonth() {
   const today    = new Date();
   const tomorrow = new Date(today);
@@ -66,7 +76,7 @@ function Dashboard() {
   const [certLoading, setCertLoading] = useState(false);
 
   // Toast state
-  const [toast, setToast] = useState(null); // { tier, reduction, carbonSaved }
+  const [toast, setToast] = useState(null); // { tier, reduction, carbonSaved, participation }
   const autoCheckDone = useRef(false);
 
   useEffect(() => {
@@ -75,23 +85,31 @@ function Dashboard() {
 
       const name = user.displayName ? user.displayName.split(" ")[0] : "User";
       setUserName(name);
+
       fetch(`https://carbon-footprint-1-a5ae.onrender.com/api/emission/${user.uid}`)
         .then(r => r.json())
         .then(data => {
           if (!Array.isArray(data) || !data.length) return;
           let total = 0, month = 0;
-          const currentMonth = new Date().getMonth();
+          const nowDate      = new Date();
+          const currentMonth = nowDate.getMonth();
+          const currentYear  = nowDate.getFullYear();
           const sorted = data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
           setAqiValue(sorted[0].aqi || 0);
           sorted.forEach(item => {
             const val = Number(item.total) || 0;
             total += val;
-            if (item.createdAt && new Date(item.createdAt).getMonth() === currentMonth) month += val;
+            if (item.createdAt) {
+              const d = new Date(item.createdAt);
+              // Month AND year must match (old code ignored the year)
+              if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) month += val;
+            }
           });
           setTotalCarbon(total.toFixed(2));
           setMonthCarbon(month.toFixed(2));
         })
         .catch(err => console.log("Emission fetch error:", err));
+
       fetch(`https://carbon-footprint-1-a5ae.onrender.com/api/emission/stats/${user.uid}`)
         .then(r => r.json())
         .then(data => {
@@ -101,6 +119,8 @@ function Dashboard() {
           setLevel(data.level || "Beginner");
         })
         .catch(err => console.log("Stats fetch error:", err));
+
+      // Month-end automation: runs once per dashboard visit, only on the last day
       if (!autoCheckDone.current) {
         autoCheckDone.current = true;
 
@@ -111,6 +131,7 @@ function Dashboard() {
     });
     return () => unsubscribe();
   }, []);
+
   const autoCheckCertificate = async (user) => {
     try {
       const res = await fetch(
@@ -128,15 +149,17 @@ function Dashboard() {
       const data = await res.json();
       if (data.success && data.eligible) {
         setToast({
-          tier:        data.tier,
-          reduction:   data.reduction,
-          carbonSaved: data.carbonSaved,
+          tier:          data.tier,
+          reduction:     data.reduction,
+          carbonSaved:   data.carbonSaved,
+          participation: data.participation,
         });
       }
     } catch (err) {
       console.log("Auto certificate check failed:", err);
     }
   };
+
   const sendCertificateEmail = async () => {
     try {
       const user = auth.currentUser;
@@ -159,9 +182,10 @@ function Dashboard() {
 
       if (data.success && data.eligible) {
         setToast({
-          tier:        data.tier,
-          reduction:   data.reduction,
-          carbonSaved: data.carbonSaved,
+          tier:          data.tier,
+          reduction:     data.reduction,
+          carbonSaved:   data.carbonSaved,
+          participation: data.participation,
         });
       } else {
         alert(data.message);
@@ -188,6 +212,7 @@ function Dashboard() {
           tier={toast.tier}
           reduction={toast.reduction}
           carbonSaved={toast.carbonSaved}
+          participation={toast.participation}
           onClose={() => setToast(null)}
         />
       )}
