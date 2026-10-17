@@ -101,7 +101,7 @@ const BREAKDOWN_CATEGORIES = [
 
 const FEATURES_LIST = [
   {
-    to: "/calculator",
+    to: "/login",
     icon: <Calculator className="feat-ico" />,
     badge: "CALCULATOR",
     title: "Scientific Carbon Calculator",
@@ -109,7 +109,7 @@ const FEATURES_LIST = [
     cta: "Calculate Footprint",
   },
   {
-    to: "/tracker",
+    to: "/login",
     icon: <Activity className="feat-ico" />,
     badge: "TRACKER",
     title: "Daily Activity & Habit Log",
@@ -117,7 +117,7 @@ const FEATURES_LIST = [
     cta: "Start Tracking",
   },
   {
-    to: "/dashboard",
+    to: "/login",
     icon: <Award className="feat-ico" />,
     badge: "CERTIFICATES",
     title: "Monthly Honor Certificates",
