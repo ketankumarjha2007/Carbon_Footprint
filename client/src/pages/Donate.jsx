@@ -309,19 +309,19 @@ function Donate({ user }) {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(8);
     doc.setTextColor(...GREEN);
-    doc.text("CarbonTrack", W / 2, H - 11, { align: "center" });
+    doc.text("VASUDHA", W / 2, H - 11, { align: "center" });
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(6.5);
     doc.setTextColor(...DIM);
     doc.text(
-      "Thank you for your contribution to a greener planet  |  support@carbontrack.in  |  carbontrack.in",
+      "Thank you for your contribution to a greener planet  |  support@vasudha.in  |  vasudha.in",
       W / 2,
       H - 5,
       { align: "center" }
     );
 
-    doc.save(`CarbonTrack_Invoice_${txnId}.pdf`);
+    doc.save(`VASUDHA_Invoice_${txnId}.pdf`);
   };
 
   const handleDonate = async (amount) => {
@@ -340,7 +340,7 @@ function Donate({ user }) {
         key: import.meta.env.VITE_RAZORPAY_KEY,
         amount: order.amount,
         currency: "INR",
-        name: "CarbonTrack",
+        name: "VASUDHA",
         description: "Tree Plantation Donation",
         order_id: order.id,
         prefill: {

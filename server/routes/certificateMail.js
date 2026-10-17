@@ -318,14 +318,14 @@ function drawCertificate(doc, { name, monthName, year, previousTotal, currentTot
   fc(doc, t.accentLight);
   doc.font("Times-BoldItalic").fontSize(15).text("Ketan Kumar Jha", W - 258, fy + 12, { width: 168, align: "right" });
   fc(doc, "#9CA3AF");
-  doc.font("Helvetica").fontSize(8).text("Founder, CarbonTrack", W - 258, fy + 28, { width: 168, align: "right" });
+  doc.font("Helvetica").fontSize(8).text("Founder, VASUDHA", W - 258, fy + 28, { width: 168, align: "right" });
   sc(doc, t.borderDark); doc.lineWidth(0.5).moveTo(W - 253, fy + 42).lineTo(W - 90, fy + 42).stroke();
 
   // 20. Watermark
   doc.save();
   fc(doc, t.glow1, 0.07);
   doc.font("Helvetica-Bold").fontSize(78)
-    .text("CARBONTRACK", 0, H / 2 - 38, { width: W, align: "center" });
+    .text("VASUDHA", 0, H / 2 - 38, { width: W, align: "center" });
   doc.restore();
 }
 
@@ -364,7 +364,7 @@ function buildEmailHtml({ name, monthName, year, carbonSaved, reduction, tier })
               Hi <strong style="color:${c.accent}">${name}</strong>,
             </p>
             <p style="color:rgba(255,255,255,0.65);font-size:15px;line-height:1.7;margin:0 0 28px">
-              Congratulations on earning your <strong style="color:${c.accent}">${tier.name} Tier</strong> CarbonTrack certificate!
+              Congratulations on earning your <strong style="color:${c.accent}">${tier.name} Tier</strong> VASUDHA certificate!
               Your dedication to reducing your environmental impact is making a real difference.
             </p>
 
@@ -409,7 +409,7 @@ function buildEmailHtml({ name, monthName, year, carbonSaved, reduction, tier })
         <!-- Footer -->
         <tr>
           <td style="padding:24px 40px;border-top:1px solid rgba(255,255,255,0.06);text-align:center">
-            <p style="color:rgba(255,255,255,0.2);font-size:12px;margin:0 0 6px">&copy; ${year} CarbonTrack &middot; Making sustainability measurable</p>
+            <p style="color:rgba(255,255,255,0.2);font-size:12px;margin:0 0 6px">&copy; ${year} VASUDHA &middot; Making sustainability measurable</p>
             <p style="color:rgba(255,255,255,0.15);font-size:11px;margin:0">You received this because you reduced your carbon footprint this month.</p>
           </td>
         </tr>
@@ -533,12 +533,12 @@ async function buildAndSendCertificate({ userId, email, name, autoCheck = false 
   const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
   const mail = new SibApiV3Sdk.SendSmtpEmail();
 
-  mail.sender     = { name: "CarbonTrack", email: process.env.SENDER_EMAIL };
+  mail.sender     = { name: "VASUDHA", email: process.env.SENDER_EMAIL };
   mail.to         = [{ email, name }];
   mail.subject    = `${tier.emoji} Your ${tier.name} Tier Certificate — ${monthName} ${currentYear}`;
   mail.htmlContent = buildEmailHtml({ name, monthName, year: currentYear, carbonSaved, reduction, tier });
   mail.attachment  = [{
-    name:    `CarbonTrack_${tier.name}_${monthName}_${currentYear}.pdf`,
+    name:    `VASUDHA_${tier.name}_${monthName}_${currentYear}.pdf`,
     content: pdfBase64,
   }];
 

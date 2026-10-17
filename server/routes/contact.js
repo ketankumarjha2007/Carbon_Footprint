@@ -18,7 +18,7 @@ router.post("/send", async (req, res) => {
       });
     }
     await resend.emails.send({
-      from: "CarbonTrack <onboarding@resend.dev>",
+      from: "VASUDHA <onboarding@resend.dev>",
       to: process.env.EMAIL_USER,
       subject: "New Contact Message",
       text: `Name: ${name}\nEmail: ${email}\nMessage: ${message}`
@@ -26,9 +26,9 @@ router.post("/send", async (req, res) => {
 
     /* USER EMAIL */
     await resend.emails.send({
-      from: "CarbonTrack <onboarding@resend.dev>",
+      from: "VASUDHA <onboarding@resend.dev>",
       to: email,
-      subject: "Thanks for contacting CarbonTrack 🌿",
+      subject: "Thanks for contacting VASUDHA 🌿",
       text: `Hello ${name},\n\nWe received your message.`
     });
 
