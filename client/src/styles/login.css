@@ -1,295 +1,518 @@
-/* ---------- GLOBAL ---------- */
+/* =========================================================================
+   VASUDHA · GOD+++ LEVEL CENTERED AUTH SANCTUARY
+   ========================================================================= */
 
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-  font-family:"Segoe UI",sans-serif;
-}
+@import url("https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@600;700;800&display=swap");
 
-.login-wrapper{
-  height:100vh;
-  width:100%;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  background: radial-gradient(circle at top,#0f172a,#020617);
-  padding:clamp(15px,5vw,40px);
-  position:relative;
-  overflow:hidden;
-}
-.login-wrapper::before,
-.login-wrapper::after{
-  content:"";
-  position:absolute;
-  width:400px;
-  height:400px;
-  border-radius:50%;
-  filter:blur(120px);
-  opacity:0.5;
+.god-auth-wrapper {
+  --green-glow: #22c55e;
+  --green-bright: #4ade80;
+  --cyan-glow: #06b6d4;
+  --card-bg: rgba(10, 18, 26, 0.82);
+  --border-glass: rgba(255, 255, 255, 0.1);
+  --border-glow: rgba(74, 222, 128, 0.35);
+
+  position: relative;
+  min-height: calc(100vh - 140px);
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(28px, 5vw, 64px) clamp(16px, 4vw, 32px);
+  background: radial-gradient(circle at 50% 20%, #06130d 0%, #030712 60%, #020617 100%);
+  font-family: "Instrument Sans", system-ui, sans-serif;
+  color: #f1f5f9;
+  overflow: hidden;
+  isolation: isolate;
 }
 
-.login-wrapper::before{
-  background:#3b82f6;
-  top:-100px;
-  left:-100px;
-  animation:float 8s infinite ease-in-out;
+.god-auth-wrapper *,
+.god-auth-wrapper *::before,
+.god-auth-wrapper *::after {
+  box-sizing: border-box;
 }
 
-.login-wrapper::after{
-  background:#10b981;
-  bottom:-100px;
-  right:-100px;
-  animation:float 10s infinite ease-in-out reverse;
+/* ================= AMBIENT NEBULAE ================= */
+.auth-nebula {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(130px);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.45;
+  animation: nebulaFloat 12s ease-in-out infinite alternate;
 }
-.login-wrapper::after{
+
+.nebula-1 {
+  top: 10%;
+  left: 20%;
+  width: clamp(300px, 35vw, 540px);
+  height: clamp(300px, 35vw, 540px);
+  background: radial-gradient(circle, rgba(34, 197, 94, 0.35), transparent 70%);
+}
+
+.nebula-2 {
+  bottom: 10%;
+  right: 20%;
+  width: clamp(320px, 40vw, 580px);
+  height: clamp(320px, 40vw, 580px);
+  background: radial-gradient(circle, rgba(6, 182, 212, 0.28), transparent 70%);
+  animation-duration: 16s;
+  animation-delay: -5s;
+}
+
+.nebula-3 {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 420px;
+  height: 420px;
+  background: radial-gradient(circle, rgba(34, 197, 94, 0.12), transparent 75%);
+}
+
+@keyframes nebulaFloat {
+  0% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-24px) scale(1.06); }
+  100% { transform: translateY(18px) scale(0.96); }
+}
+
+/* Cyber Grid */
+.auth-grid-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
   background-image:
-    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-  background-size:40px 40px;
-}
-.particles{
-  position:absolute;
-  width:100%;
-  height:100%;
-  top:0;
-  left:0;
-  overflow:hidden;
-  z-index:0;
+    linear-gradient(rgba(74, 222, 128, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(74, 222, 128, 0.035) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(circle at 50% 50%, #000 35%, transparent 75%);
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 35%, transparent 75%);
 }
 
-.particles span{
-  position:absolute;
-  width:6px;
-  height:6px;
-  background:#4ade80;
-  border-radius:50%;
-  opacity:0.6;
-  animation:moveParticles linear infinite;
+/* Stardust Layer */
+.auth-stardust-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
 }
 
-.particles span:nth-child(1){ left:10%; animation-duration:12s; }
-.particles span:nth-child(2){ left:20%; animation-duration:15s; }
-.particles span:nth-child(3){ left:30%; animation-duration:10s; }
-.particles span:nth-child(4){ left:40%; animation-duration:18s; }
-.particles span:nth-child(5){ left:50%; animation-duration:14s; }
-.particles span:nth-child(6){ left:60%; animation-duration:20s; }
-.particles span:nth-child(7){ left:70%; animation-duration:13s; }
-.particles span:nth-child(8){ left:80%; animation-duration:17s; }
-.particles span:nth-child(9){ left:90%; animation-duration:11s; }
+.auth-dust {
+  position: absolute;
+  bottom: -20px;
+  border-radius: 50%;
+  background: #a7f3d0;
+  opacity: 0.5;
+  box-shadow: 0 0 8px #34d399;
+  animation: dustRise linear infinite;
+}
 
-.login-box{
-  background:rgba(17,24,39,0.7);
-  backdrop-filter:blur(20px);
-  padding:clamp(25px,4vw,45px);
-  width:100%;
-  max-width:clamp(320px,90%,420px);
-  border-radius:16px;
-  border:1px solid rgba(255,255,255,0.1);
+@keyframes dustRise {
+  0% { transform: translateY(0); opacity: 0; }
+  20% { opacity: 0.7; }
+  80% { opacity: 0.7; }
+  100% { transform: translateY(-100vh); opacity: 0; }
+}
 
+/* ================= CENTERED AUTH CARD ================= */
+.auth-card-sanctuary {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 470px;
+  padding: clamp(30px, 4.5vw, 46px) clamp(22px, 4vw, 42px);
+  border-radius: 26px;
+  background: var(--card-bg);
+  border: 1px solid var(--border-glass);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
   box-shadow:
-    0 0 40px rgba(59,130,246,0.2),
-    0 10px 40px rgba(0,0,0,0.7);
-
-  animation:
-    slideUp 0.7s ease,
-    floatBox 6s ease-in-out infinite;
-
-  transition:0.3s;
-  z-index:2;
+    0 24px 80px rgba(0, 0, 0, 0.75),
+    0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 0 60px rgba(34, 197, 94, 0.12);
+  animation: cardSanctuaryIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  text-align: center;
 }
 
-.login-box:hover{
-  transform:translateY(-5px);
+@keyframes cardSanctuaryIn {
+  from { opacity: 0; transform: translateY(28px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.sanctuary-glow-rim {
+  position: absolute;
+  top: 0;
+  left: 15%;
+  right: 15%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--green-bright), transparent);
+  opacity: 0.8;
+}
+
+/* Crest Emblem */
+.sanctuary-crest {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(74, 222, 128, 0.28);
+  margin-bottom: 18px;
+}
+.crest-emblem {
+  font-size: 16px;
+  filter: drop-shadow(0 0 6px var(--green-bright));
+}
+.crest-tag {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--green-bright);
+}
+
+.sanctuary-title {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: clamp(24px, 3.2vw, 32px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #fff;
+  margin: 0 0 8px;
+}
+
+.sanctuary-sub {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #94a3b8;
+  max-width: 360px;
+  margin: 0 auto 24px;
+}
+
+/* Tab Switcher */
+.sanctuary-tab-slider {
+  position: relative;
+  display: flex;
+  padding: 5px;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 24px;
+}
+
+.tab-switch {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.25s ease;
+}
+.tab-switch.active {
+  color: #fff;
+}
+
+.tab-indicator {
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  width: calc(50% - 5px);
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.32), rgba(6, 182, 212, 0.25));
+  border: 1px solid rgba(74, 222, 128, 0.45);
+  box-shadow: 0 0 16px rgba(34, 197, 94, 0.25);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 1;
+}
+.tab-indicator.left { transform: translateX(0); }
+.tab-indicator.right { transform: translateX(100%); }
+
+/* Error Message */
+.sanctuary-error-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+  font-size: 13px;
+  line-height: 1.4;
+  margin-bottom: 20px;
+  text-align: left;
+  animation: errorShake 0.35s ease;
+}
+@keyframes errorShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+/* Form */
+.sanctuary-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  text-align: left;
+}
+
+.sanctuary-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.sanctuary-field-group label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #cbd5e1;
+  letter-spacing: 0.02em;
+}
+
+.sanc-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.sanc-secure-tag {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--green-bright);
+}
+
+.sanc-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.sanc-icon {
+  position: absolute;
+  left: 14px;
+  color: #64748b;
+  pointer-events: none;
+  transition: color 0.25s ease;
+}
+
+.sanc-input-wrap input {
+  width: 100%;
+  padding: 13px 44px 13px 42px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #f8fafc;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.sanc-input-wrap input:focus {
+  border-color: var(--green-bright);
   box-shadow:
-    0 0 60px rgba(16,185,129,0.3),
-    0 20px 60px rgba(0,0,0,0.8);
+    0 0 0 3px rgba(34, 197, 94, 0.2),
+    0 0 20px rgba(34, 197, 94, 0.15);
+  background: rgba(15, 23, 42, 0.98);
 }
-.login-box h1{
-  text-align:center;
-  margin-bottom:8px;
-  font-weight:700;
-
-  background:linear-gradient(90deg,#3b82f6,#10b981,#3b82f6);
-  background-size:200%;
-
-  -webkit-background-clip:text;
-  background-clip:text;
-
-  color:transparent;
-  -webkit-text-fill-color:transparent;
-
-  text-shadow:0 0 15px rgba(16,185,129,0.4);
-
-  animation:gradientMove 3s linear infinite;
-
-  font-size:clamp(22px,4vw,30px);
+.sanc-input-wrap:focus-within .sanc-icon {
+  color: var(--green-bright);
 }
 
-.subtitle{
-  color:#9ca3af;
-  text-align:center;
-  margin-bottom:25px;
-  font-size:clamp(12px,2.5vw,14px);
+.sanc-toggle-btn {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  padding: 4px;
+  border-radius: 6px;
+  transition: color 0.2s ease;
 }
-.login-box input{
-  width:100%;
-  padding:clamp(10px,2.5vw,14px);
-  margin-bottom:18px;
-
-  border-radius:8px;
-  border:1px solid #374151;
-
-  background:#1f2937;
-  color:white;
-
-  outline:none;
-  transition:0.3s;
+.sanc-toggle-btn:hover {
+  color: #e2e8f0;
 }
 
-.login-box input:focus{
-  border-color:#10b981;
-  box-shadow:
-    0 0 10px #10b981,
-    0 0 20px rgba(16,185,129,0.6);
-  transform:scale(1.03);
+/* Password Strength Meter */
+.sanc-meter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
 }
-.btn{
-  width:100%;
-  padding:clamp(10px,2.5vw,13px);
-  border:none;
-  border-radius:10px;
-  margin-top:10px;
-
-  font-weight:600;
-  cursor:pointer;
-  transition:all 0.3s ease;
-  position:relative;
-  overflow:hidden;
+.meter-track {
+  display: flex;
+  gap: 4px;
+  flex: 1;
 }
-
-.btn::after{
-  content:"";
-  position:absolute;
-  width:300%;
-  height:300%;
-  background:rgba(255,255,255,0.1);
-  top:50%;
-  left:50%;
-  transform:translate(-50%,-50%) scale(0);
-  border-radius:50%;
-  transition:0.5s;
+.meter-seg {
+  flex: 1;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+.meter-seg.filled {
+  background: linear-gradient(90deg, #22c55e, #4ade80);
+  box-shadow: 0 0 8px #22c55e;
+}
+.meter-text {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--green-bright);
+  min-width: 80px;
+  text-align: right;
 }
 
-.btn:active::after{
-  transform:translate(-50%,-50%) scale(1);
+/* Submit Button */
+.sanctuary-submit-btn {
+  position: relative;
+  width: 100%;
+  padding: 14px 24px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, #22c55e, #10b981);
+  color: #031409;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  overflow: hidden;
+  box-shadow: 0 6px 24px rgba(34, 197, 94, 0.4);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  margin-top: 6px;
+}
+.sanctuary-submit-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 32px rgba(34, 197, 94, 0.6);
+  background: linear-gradient(135deg, #4ade80, #22c55e);
+}
+.sanctuary-submit-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
 }
 
-.login{
-  background:linear-gradient(90deg,#3b82f6,#2563eb);
-  color:white;
+.submit-shine {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transform: skewX(-20deg);
+  transition: 0.75s;
+}
+.sanctuary-submit-btn:hover .submit-shine {
+  left: 140%;
 }
 
-.signup{
-  background:linear-gradient(90deg,#10b981,#059669);
-  color:white;
+.submit-text {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
-.google{
-  background:white;
-  color:black;
+/* Divider */
+.sanctuary-divider {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 22px 0 16px;
+}
+.sanc-div-line {
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+}
+.sanc-div-text {
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  font-weight: 700;
+  color: #64748b;
 }
 
-.btn:hover{
-  transform:translateY(-3px) scale(1.03);
+/* Google OAuth */
+.sanctuary-google-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 13px 20px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #f1f5f9;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
 }
-.divider{
-  text-align:center;
-  color:#9ca3af;
-  margin:20px 0;
-  position:relative;
-  font-size:13px;
+.sanctuary-google-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
-
-.divider::before,
-.divider::after{
-  content:"";
-  height:1px;
-  width:40%;
-  background:#374151;
-  position:absolute;
-  top:50%;
-}
-
-.divider::before{ left:0; }
-.divider::after{ right:0; }
-.error{
-  color:#ef4444;
-  text-align:center;
-  margin-bottom:10px;
-  font-size:14px;
-  animation:shake 0.3s ease;
+.sanctuary-google-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
-
-@keyframes slideUp{
-  from{opacity:0; transform:translateY(50px);}
-  to{opacity:1; transform:translateY(0);}
+/* Trust Footer */
+.sanctuary-trust-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.trust-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  color: #64748b;
+}
+.trust-ico {
+  color: #22c55e;
+}
+.trust-dot {
+  color: rgba(255, 255, 255, 0.2);
 }
 
-@keyframes float{
-  0%,100%{transform:translateY(0);}
-  50%{transform:translateY(30px);}
-}
-
-@keyframes floatBox{
-  0%,100%{transform:translateY(0);}
-  50%{transform:translateY(-10px);}
-}
-
-@keyframes gradientMove{
-  0%{background-position:0%;}
-  100%{background-position:200%;}
-}
-
-@keyframes moveParticles{
-  0%{transform:translateY(100vh); opacity:0;}
-  20%{opacity:0.7;}
-  100%{transform:translateY(-10vh); opacity:0;}
-}
-
-@keyframes shake{
-  0%{transform:translateX(0);}
-  25%{transform:translateX(-5px);}
-  50%{transform:translateX(5px);}
-  75%{transform:translateX(-5px);}
-  100%{transform:translateX(0);}
-}
-
-@media (max-width:360px){
-  .login-box{
-    padding:20px 15px;
+/* ================= RESPONSIVE ================= */
+@media (max-width: 480px) {
+  .god-auth-wrapper {
+    padding: 24px 14px;
   }
-}
-
-.password-field{
-  position:relative;
-}
-
-.password-field input{
-  width:100%;
-}
-
-.password-field .toggle{
-  position:absolute;
-  right:12px;
-  top:50%;
-  transform:translateY(-50%);
-  cursor:pointer;
-  font-size:16px;
-  color:#9ca3af;
-}
-
-.password-field .toggle:hover{
-  color:#10b981;
+  .auth-card-sanctuary {
+    padding: 28px 18px;
+    border-radius: 20px;
+  }
+  .sanctuary-title {
+    font-size: 22px;
+  }
+  .sanctuary-sub {
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+  .sanc-input-wrap input {
+    padding: 12px 38px 12px 38px;
+    font-size: 13.5px;
+  }
+  .sanctuary-submit-btn {
+    padding: 13px 20px;
+    font-size: 14px;
+  }
 }

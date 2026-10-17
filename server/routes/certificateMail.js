@@ -1,15 +1,14 @@
 import express from "express";
 import PDFDocument from "pdfkit";
-import SibApiV3Sdk from "sib-api-v3-sdk";
+import { Resend } from "resend";
 import crypto from "crypto";
 import Emission from "../models/emissionModel.js";
 import CertificateLog from "../models/certificateLogModel.js";
+import UserProfile from "../models/userProfileModel.js";
 
 const router = express.Router();
 
 const TIERS = {
-  // Participation tier — only issued on MANUAL "Get Certificate" clicks
-  // when the user hasn't reduced enough to earn a real tier.
   seedling: {
     name: "Seedling",
     minReduction: 0,
@@ -40,7 +39,7 @@ const TIERS = {
     maxReduction: 10,
     emoji: "🥉",
     pdfMedal: "BRONZE",
-    tagline: "Every step counts — your journey has begun.",
+    tagline: "Every step counts — your sustainability journey has begun.",
     bg: "#1A0F00",
     glow1: "#3D1F00",
     glow2: "#5C2E00",
@@ -64,8 +63,8 @@ const TIERS = {
     maxReduction: 25,
     emoji: "🥈",
     pdfMedal: "SILVER",
-    tagline: "Impressive progress — sustainability is your habit.",
-    bg: "#0D0D0F",
+    tagline: "Impressive progress — sustainability is becoming your nature.",
+    bg: "#0D0D14",
     glow1: "#1A1A2E",
     glow2: "#16213E",
     border1: "#A8A8B3",
@@ -88,7 +87,7 @@ const TIERS = {
     maxReduction: 50,
     emoji: "🥇",
     pdfMedal: "GOLD",
-    tagline: "Outstanding achievement — you are a climate champion.",
+    tagline: "Outstanding achievement — you are a verified climate champion.",
     bg: "#0B2818",
     glow1: "#14532D",
     glow2: "#166534",
@@ -112,7 +111,7 @@ const TIERS = {
     maxReduction: Infinity,
     emoji: "💎",
     pdfMedal: "PLATINUM",
-    tagline: "Extraordinary — you are redefining what's possible.",
+    tagline: "Extraordinary impact — you are actively healing the biosphere.",
     bg: "#050B14",
     glow1: "#0A1628",
     glow2: "#0D1F3C",
@@ -132,39 +131,48 @@ const TIERS = {
   },
 };
 
-// Real tiers only (Seedling is a manual-only fallback, never returned here)
 function getTier(reduction) {
   if (reduction >= 50) return TIERS.platinum;
   if (reduction >= 25) return TIERS.gold;
   if (reduction >= 10) return TIERS.silver;
-  if (reduction >= 1)  return TIERS.bronze;
+  if (reduction >= 1) return TIERS.bronze;
   return null;
 }
 
-function fc(doc, hex, alpha = 1) { doc.fillColor(hex, alpha); }
-function sc(doc, hex) { doc.strokeColor(hex); }
+function fc(doc, hex, alpha = 1) {
+  doc.fillColor(hex, alpha);
+}
+function sc(doc, hex) {
+  doc.strokeColor(hex);
+}
 
 function diamond(doc, cx, cy, color, size = 4) {
   fc(doc, color);
-  doc.polygon([cx, cy - size], [cx + size, cy], [cx, cy + size], [cx - size, cy]).fill();
+  doc
+    .polygon([cx, cy - size], [cx + size, cy], [cx, cy + size], [cx - size, cy])
+    .fill();
 }
 
 function cornerArc(doc, cx, cy, scaleX, scaleY, t) {
   doc.save();
   doc.translate(cx, cy).scale(scaleX, scaleY);
-  sc(doc, t.border1); doc.lineWidth(1.5).path("M 0 26 A 26 26 0 0 1 26 0").stroke();
-  sc(doc, t.borderDark); doc.lineWidth(0.6).path("M 0 16 A 16 16 0 0 1 16 0").stroke();
+  sc(doc, t.border1);
+  doc.lineWidth(1.5).path("M 0 28 A 28 28 0 0 1 28 0").stroke();
+  sc(doc, t.borderDark);
+  doc.lineWidth(0.6).path("M 0 18 A 18 18 0 0 1 18 0").stroke();
   doc.restore();
 }
 
-// Stars drawn as filled polygons — no emoji needed
 function drawStar(doc, cx, cy, r, color) {
   const points = [];
   for (let i = 0; i < 5; i++) {
     const outerAngle = (Math.PI * 2 * i) / 5 - Math.PI / 2;
     const innerAngle = outerAngle + Math.PI / 5;
     points.push([cx + r * Math.cos(outerAngle), cy + r * Math.sin(outerAngle)]);
-    points.push([cx + (r * 0.4) * Math.cos(innerAngle), cy + (r * 0.4) * Math.sin(innerAngle)]);
+    points.push([
+      cx + r * 0.4 * Math.cos(innerAngle),
+      cy + r * 0.4 * Math.sin(innerAngle),
+    ]);
   }
   fc(doc, color);
   doc.polygon(...points).fill();
@@ -172,171 +180,281 @@ function drawStar(doc, cx, cy, r, color) {
 
 function tierStars(doc, cx, cy, t) {
   const count = t.starCount;
-  const spacing = 20;
+  const spacing = 22;
   const startX = cx - ((count - 1) * spacing) / 2;
   for (let i = 0; i < count; i++) {
-    drawStar(doc, startX + i * spacing, cy, 6, t.accent);
+    drawStar(doc, startX + i * spacing, cy, 7, t.accent);
   }
 }
 
-// Stat box with "CO2" text (no Unicode subscript — Helvetica can't render it)
 function statBox(doc, cx, cy, label, value, highlight, t) {
-  const bw = 134, bh = 60;
-  const x = cx - bw / 2, y = cy - bh / 2;
+  const bw = 138,
+    bh = 62;
+  const x = cx - bw / 2,
+    y = cy - bh / 2;
 
   fc(doc, highlight ? t.statHighBg : t.statBg);
   sc(doc, highlight ? t.statHighBorder : t.statBorder);
-  doc.lineWidth(highlight ? 1.2 : 0.6).roundedRect(x, y, bw, bh, 6).fillAndStroke();
+  doc
+    .lineWidth(highlight ? 1.4 : 0.7)
+    .roundedRect(x, y, bw, bh, 8)
+    .fillAndStroke();
 
-  fc(doc, t.accentLight, 0.7);
-  doc.font("Helvetica").fontSize(7.5).text("kg CO2", x, y + 9, { width: bw, align: "center" });
+  fc(doc, t.accentLight, 0.75);
+  doc.font("Helvetica").fontSize(7.5).text("kg CO2", x, y + 8, {
+    width: bw,
+    align: "center",
+  });
 
   fc(doc, highlight ? t.accentLight : "#F0EDE4");
-  doc.font("Helvetica-Bold").fontSize(21).text(value, x, y + 20, { width: bw, align: "center" });
+  doc
+    .font("Helvetica-Bold")
+    .fontSize(20)
+    .text(value, x, y + 19, { width: bw, align: "center" });
 
   fc(doc, highlight ? t.accent : "#9CA3AF");
-  doc.font("Helvetica").fontSize(7.5).text(label, x, y + bh - 15, { width: bw, align: "center" });
+  doc
+    .font("Helvetica")
+    .fontSize(7.5)
+    .text(label, x, y + bh - 16, { width: bw, align: "center" });
 }
 
-function drawCertificate(doc, { name, monthName, year, previousTotal, currentTotal, carbonSaved, reduction, tier }) {
-  const W = 841.89, H = 595.28;
+function drawCertificate(
+  doc,
+  {
+    name,
+    monthName,
+    year,
+    previousTotal,
+    currentTotal,
+    carbonSaved,
+    reduction,
+    tier,
+  }
+) {
+  const W = 841.89,
+    H = 595.28;
   const t = tier;
 
-  // 1. Background
+  // Background
   fc(doc, t.bg);
   doc.rect(0, 0, W, H).fill();
 
-  // 2. Center glow layers
-  fc(doc, t.glow1, 0.6);
-  doc.ellipse(W / 2, H / 2, 320, 230).fill();
-  fc(doc, t.glow2, 0.3);
-  doc.ellipse(W / 2, H / 2, 200, 145).fill();
+  // Ambient glows
+  fc(doc, t.glow1, 0.55);
+  doc.ellipse(W / 2, H / 2, 340, 240).fill();
+  fc(doc, t.glow2, 0.35);
+  doc.ellipse(W / 2, H / 2, 210, 150).fill();
 
-  // 3. Platinum shimmer
   if (t.name === "Platinum") {
-    fc(doc, "#0A2444", 0.4);
-    doc.ellipse(W * 0.25, H * 0.25, 180, 120).fill();
-    fc(doc, "#0A2444", 0.3);
-    doc.ellipse(W * 0.75, H * 0.75, 180, 120).fill();
+    fc(doc, "#0A2444", 0.45);
+    doc.ellipse(W * 0.25, H * 0.25, 200, 130).fill();
+    fc(doc, "#0A2444", 0.35);
+    doc.ellipse(W * 0.75, H * 0.75, 200, 130).fill();
   }
 
-  // 4. Double border
+  // Double Border with luxury styling
   const mg = 18;
-  sc(doc, t.border1); doc.lineWidth(2.5).roundedRect(mg, mg, W - 2 * mg, H - 2 * mg, 12).stroke();
-  sc(doc, t.border2); doc.lineWidth(0.6).roundedRect(mg + 7, mg + 7, W - 2 * (mg + 7), H - 2 * (mg + 7), 8).stroke();
+  sc(doc, t.border1);
+  doc
+    .lineWidth(2.5)
+    .roundedRect(mg, mg, W - 2 * mg, H - 2 * mg, 14)
+    .stroke();
+  sc(doc, t.border2);
+  doc
+    .lineWidth(0.7)
+    .roundedRect(mg + 7, mg + 7, W - 2 * (mg + 7), H - 2 * (mg + 7), 9)
+    .stroke();
 
-  // 5. Corner ornaments
+  // Corner ornaments
   cornerArc(doc, mg + 4, mg + 4, 1, 1, t);
   cornerArc(doc, W - mg - 4, mg + 4, -1, 1, t);
   cornerArc(doc, mg + 4, H - mg - 4, 1, -1, t);
   cornerArc(doc, W - mg - 4, H - mg - 4, -1, -1, t);
 
-  // 6. Logo leaf
-  const logoTop = 42;
+  // Logo leaf
+  const logoTop = 40;
   fc(doc, t.leafColor);
   doc.save();
   doc.translate(W / 2, logoTop);
-  doc.path("M0,0 C16,6 16,22 0,30 C-16,22 -16,6 0,0 Z").fill();
-  sc(doc, t.glow2); doc.lineWidth(0.8).moveTo(0, 0).lineTo(0, 30).stroke();
+  doc.path("M0,0 C18,7 18,24 0,32 C-18,24 -18,7 0,0 Z").fill();
+  sc(doc, t.glow2);
+  doc.lineWidth(1).moveTo(0, 0).lineTo(0, 32).stroke();
   doc.restore();
 
-  // 7. Brand name
+  // Brand Name
   fc(doc, t.accentLight);
-  doc.font("Helvetica-Bold").fontSize(12)
-    .text("C A R B O N T R A C K", 0, logoTop + 36, { width: W, align: "center" });
+  doc
+    .font("Helvetica-Bold")
+    .fontSize(12)
+    .text("V A S U D H A", 0, logoTop + 38, { width: W, align: "center" });
 
-  // 8. Tier badge pill
-  const tierBadgeY = logoTop + 56;
-  const tierLabel = `* ${t.pdfMedal} TIER *`;
-  const pillW = 160, pillH = 22;
+  // Tier Badge Pill
+  const tierBadgeY = logoTop + 58;
+  const tierLabel = `★  ${t.pdfMedal} TIER HONORS  ★`;
+  const pillW = 180,
+    pillH = 22;
   fc(doc, t.badgeBg);
-  sc(doc, t.border1); doc.lineWidth(1).roundedRect(W / 2 - pillW / 2, tierBadgeY, pillW, pillH, 11).fillAndStroke();
+  sc(doc, t.border1);
+  doc
+    .lineWidth(1)
+    .roundedRect(W / 2 - pillW / 2, tierBadgeY, pillW, pillH, 11)
+    .fillAndStroke();
   fc(doc, t.accent);
-  doc.font("Helvetica-Bold").fontSize(9)
-    .text(tierLabel, W / 2 - pillW / 2, tierBadgeY + 7, { width: pillW, align: "center" });
+  doc
+    .font("Helvetica-Bold")
+    .fontSize(8.5)
+    .text(tierLabel, W / 2 - pillW / 2, tierBadgeY + 7, {
+      width: pillW,
+      align: "center",
+    });
 
-  // 9. Divider 1
+  // Divider 1
   const d1y = tierBadgeY + 34;
-  sc(doc, t.border1); doc.lineWidth(0.8).moveTo(90, d1y).lineTo(W - 90, d1y).stroke();
-  diamond(doc, W / 2, d1y, t.accent);
+  sc(doc, t.border1);
+  doc.lineWidth(0.8).moveTo(80, d1y).lineTo(W - 80, d1y).stroke();
+  diamond(doc, W / 2, d1y, t.accent, 5);
 
-  // 10. Certificate title
+  // Title
   fc(doc, "#FDFBF4");
-  doc.font("Times-Roman").fontSize(13.5)
-    .text("C E R T I F I C A T E   O F   S U S T A I N A B I L I T Y", 0, d1y + 12, { width: W, align: "center" });
+  doc
+    .font("Times-Roman")
+    .fontSize(14)
+    .text("C E R T I F I C A T E   O F   S U S T A I N A B I L I T Y", 0, d1y + 11, {
+      width: W,
+      align: "center",
+    });
 
-  // 11. Presented to
+  // Subtitle
   fc(doc, "#9CA3AF");
-  doc.font("Helvetica").fontSize(10)
-    .text("This certificate is proudly presented to", 0, d1y + 34, { width: W, align: "center" });
+  doc
+    .font("Helvetica")
+    .fontSize(10)
+    .text("This prestigious credential is proudly conferred upon", 0, d1y + 33, {
+      width: W,
+      align: "center",
+    });
 
-  // 12. Name box
-  const nameBoxTop = d1y + 54;
-  const barW = Math.min(Math.max(name.length * 16, 200), 500);
-  const barH = 44;
-  fc(doc, t.statBg); sc(doc, t.border1); doc.lineWidth(1)
-    .roundedRect(W / 2 - barW / 2, nameBoxTop, barW, barH, 5).fillAndStroke();
+  // Recipient Name
+  const nameBoxTop = d1y + 52;
+  const barW = Math.min(Math.max(name.length * 17, 240), 520);
+  const barH = 46;
+  fc(doc, t.statBg);
+  sc(doc, t.border1);
+  doc
+    .lineWidth(1.2)
+    .roundedRect(W / 2 - barW / 2, nameBoxTop, barW, barH, 6)
+    .fillAndStroke();
   fc(doc, t.accentLight);
-  doc.font("Times-BoldItalic").fontSize(28)
-    .text(name, W / 2 - barW / 2, nameBoxTop + 8, { width: barW, align: "center" });
+  doc
+    .font("Times-BoldItalic")
+    .fontSize(28)
+    .text(name, W / 2 - barW / 2, nameBoxTop + 8, {
+      width: barW,
+      align: "center",
+    });
 
-  // 13. Tagline
-  const tagY = nameBoxTop + barH + 10;
-  fc(doc, t.accent, 0.85);
-  doc.font("Helvetica").fontSize(9.5).text(`"${t.tagline}"`, 0, tagY, { width: W, align: "center" });
+  // Tagline
+  const tagY = nameBoxTop + barH + 9;
+  fc(doc, t.accent, 0.9);
+  doc
+    .font("Helvetica")
+    .fontSize(9.5)
+    .text(`"${t.tagline}"`, 0, tagY, { width: W, align: "center" });
 
-  // 14. Achievement text
+  // Citation text
   const achY = tagY + 20;
   fc(doc, "#F0EDE4");
-  const achLine1 = t.name === "Seedling"
-    ? "For beginning a sustainability journey and tracking carbon emissions during"
-    : "For demonstrating outstanding commitment to environmental responsibility during";
-  const achLine2 = t.name === "Seedling"
-    ? `${monthName} ${year} — every great forest starts with a single seed.`
-    : `${monthName} ${year} — achieving measurable carbon reduction through sustainable choices.`;
-  doc.font("Helvetica").fontSize(9.5)
+  const achLine1 =
+    t.name === "Seedling"
+      ? "For taking proactive action to measure, understand, and reduce environmental impact during"
+      : "For exemplary dedication to climate leadership and achieving verified carbon reduction during";
+  const achLine2 =
+    t.name === "Seedling"
+      ? `${monthName} ${year} — taking crucial first steps towards a resilient planet.`
+      : `${monthName} ${year} — demonstrating tangible ecological stewardship for our shared Earth.`;
+  doc
+    .font("Helvetica")
+    .fontSize(9.5)
     .text(achLine1, 0, achY, { width: W, align: "center" })
     .text(achLine2, 0, achY + 14, { width: W, align: "center" });
 
-  // 15. Stat boxes
+  // Stat boxes
   const statsCY = achY + 62;
-  statBox(doc, W / 2 - 200, statsCY, "PREVIOUS MONTH", previousTotal.toFixed(2), false, t);
-  statBox(doc, W / 2,        statsCY, "CARBON REDUCED",  carbonSaved.toFixed(2),   true,  t);
-  statBox(doc, W / 2 + 200, statsCY, "CURRENT MONTH",  currentTotal.toFixed(2),  false, t);
+  statBox(
+    doc,
+    W / 2 - 200,
+    statsCY,
+    "PREVIOUS MONTH",
+    previousTotal.toFixed(2),
+    false,
+    t
+  );
+  statBox(
+    doc,
+    W / 2,
+    statsCY,
+    "CARBON REDUCED",
+    carbonSaved.toFixed(2),
+    true,
+    t
+  );
+  statBox(
+    doc,
+    W / 2 + 200,
+    statsCY,
+    "CURRENT MONTH",
+    currentTotal.toFixed(2),
+    false,
+    t
+  );
 
-  // 16. Reduction % badge
-  const bx = W / 2 + 320;
+  // Reduction % Badge
+  const bx = W / 2 + 325;
   fc(doc, t.accent);
-  doc.circle(bx, statsCY, 30).fill();
+  doc.circle(bx, statsCY, 32).fill();
   fc(doc, t.bg);
-  doc.font("Helvetica-Bold").fontSize(16)
-    .text(`${Math.round(reduction)}%`, bx - 30, statsCY - 12, { width: 60, align: "center" });
-  doc.font("Helvetica").fontSize(7)
-    .text("REDUCED", bx - 30, statsCY + 8, { width: 60, align: "center" });
+  doc
+    .font("Helvetica-Bold")
+    .fontSize(17)
+    .text(`${Math.round(reduction)}%`, bx - 32, statsCY - 13, {
+      width: 64,
+      align: "center",
+    });
+  doc
+    .font("Helvetica")
+    .fontSize(7.5)
+    .text("REDUCED", bx - 32, statsCY + 8, { width: 64, align: "center" });
 
-  // 17. Stars row
+  // Stars
   const starsY = statsCY + 42;
   tierStars(doc, W / 2, starsY, t);
 
-  // 18. Divider 2
+  // Divider 2
   const d2y = starsY + 18;
-  sc(doc, t.border1); doc.lineWidth(0.7).moveTo(80, d2y).lineTo(W - 80, d2y).stroke();
-  diamond(doc, W / 2, d2y, t.accent);
+  sc(doc, t.border1);
+  doc.lineWidth(0.8).moveTo(80, d2y).lineTo(W - 80, d2y).stroke();
+  diamond(doc, W / 2, d2y, t.accent, 5);
 
-  // 19. Footer section
-  const fy = d2y + 16;
+  // Footer Section
+  const fy = d2y + 15;
 
-  // Left — issued date
+  // Left - Issue Date
   fc(doc, "#9CA3AF");
-  doc.font("Helvetica").fontSize(8).text("ISSUED ON", 90, fy);
+  doc.font("Helvetica").fontSize(8).text("DATE OF ISSUANCE", 90, fy);
   const dateStr = new Date()
-    .toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
+    .toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    })
     .toUpperCase();
   fc(doc, "#FDFBF4");
   doc.font("Helvetica-Bold").fontSize(10.5).text(dateStr, 90, fy + 13);
-  sc(doc, t.borderDark); doc.lineWidth(0.5).moveTo(90, fy + 30).lineTo(248, fy + 30).stroke();
+  sc(doc, t.borderDark);
+  doc.lineWidth(0.5).moveTo(90, fy + 30).lineTo(250, fy + 30).stroke();
 
-  // Center — certificate ID
+  // Center - Certificate Hash ID
   const certId = crypto
     .createHash("md5")
     .update(`${name}${monthName}${year}${t.name}`)
@@ -344,23 +462,40 @@ function drawCertificate(doc, { name, monthName, year, previousTotal, currentTot
     .slice(0, 12)
     .toUpperCase();
   fc(doc, "#9CA3AF");
-  doc.font("Helvetica").fontSize(7.5)
-    .text(`CERTIFICATE ID: CT-${certId}`, 0, fy + 18, { width: W, align: "center" });
+  doc
+    .font("Helvetica")
+    .fontSize(8)
+    .text(`VERIFICATION ID: CT-${certId}`, 0, fy + 16, {
+      width: W,
+      align: "center",
+    });
 
-  // Right — authorized by
+  // Right - Authorized Signatory
   fc(doc, "#9CA3AF");
-  doc.font("Helvetica").fontSize(8).text("AUTHORIZED BY", W - 258, fy, { width: 168, align: "right" });
+  doc
+    .font("Helvetica")
+    .fontSize(8)
+    .text("AUTHORIZED BY", W - 260, fy, { width: 170, align: "right" });
   fc(doc, t.accentLight);
-  doc.font("Times-BoldItalic").fontSize(15).text("Ketan Kumar Jha", W - 258, fy + 12, { width: 168, align: "right" });
+  doc
+    .font("Times-BoldItalic")
+    .fontSize(15)
+    .text("Ketan Kumar Jha", W - 260, fy + 12, { width: 170, align: "right" });
   fc(doc, "#9CA3AF");
-  doc.font("Helvetica").fontSize(8).text("Founder, VASUDHA", W - 258, fy + 28, { width: 168, align: "right" });
-  sc(doc, t.borderDark); doc.lineWidth(0.5).moveTo(W - 253, fy + 42).lineTo(W - 90, fy + 42).stroke();
+  doc
+    .font("Helvetica")
+    .fontSize(8)
+    .text("Founder, VASUDHA", W - 260, fy + 28, { width: 170, align: "right" });
+  sc(doc, t.borderDark);
+  doc.lineWidth(0.5).moveTo(W - 255, fy + 42).lineTo(W - 90, fy + 42).stroke();
 
-  // 20. Watermark
+  // Ambient Watermark
   doc.save();
-  fc(doc, t.glow1, 0.07);
-  doc.font("Helvetica-Bold").fontSize(78)
-    .text("VASUDHA", 0, H / 2 - 38, { width: W, align: "center" });
+  fc(doc, t.glow1, 0.08);
+  doc
+    .font("Helvetica-Bold")
+    .fontSize(84)
+    .text("VASUDHA", 0, H / 2 - 40, { width: W, align: "center" });
   doc.restore();
 }
 
@@ -372,83 +507,82 @@ function buildEmailHtml({ name, monthName, year, carbonSaved, reduction, tier })
     Gold:     { bg: "#0B2818", header: "#D4A853", accent: "#F5D78E", badge: "#D4A853", badgeText: "#0B2818" },
     Platinum: { bg: "#050B14", header: "#8ECAE6", accent: "#CAF0F8", badge: "#8ECAE6", badgeText: "#050B14" },
   };
-  const c = tierColors[tier.name];
-  const intro = tier.name === "Seedling"
-    ? `Thank you for tracking your footprint with VASUDHA! You've earned a <strong style="color:${c.accent}">Seedling</strong> certificate. Reduce your emissions by 1% or more compared to last month to unlock Bronze, Silver, Gold and Platinum tiers.`
-    : `Congratulations on earning your <strong style="color:${c.accent}">${tier.name} Tier</strong> VASUDHA certificate! Your dedication to reducing your environmental impact is making a real difference.`;
+  const c = tierColors[tier.name] || tierColors.Gold;
+  const intro =
+    tier.name === "Seedling"
+      ? `Thank you for actively tracking and managing your emissions with VASUDHA! You've earned the <strong style="color:${c.accent}">Seedling</strong> Certificate. Reduce your carbon footprint this upcoming month to achieve Bronze, Silver, Gold and Platinum honors!`
+      : `Congratulations on earning the prestigious <strong style="color:${c.accent}">${tier.name} Tier</strong> VASUDHA Certificate! Your dedication to sustainable choices has produced measurable impact.`;
+
   return `
 <!DOCTYPE html>
 <html>
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background:#0a0a0a;font-family:'Segoe UI',Arial,sans-serif">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0a0a;padding:32px 0">
+<body style="margin:0;padding:0;background:#060b08;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#060b08;padding:36px 0">
     <tr><td align="center">
-      <table width="600" cellpadding="0" cellspacing="0" style="background:${c.bg};border-radius:16px;border:1px solid ${c.header}40;overflow:hidden;max-width:600px;width:100%">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:${c.bg};border-radius:18px;border:1px solid ${c.header}40;overflow:hidden;max-width:600px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,0.6)">
 
         <!-- Header -->
         <tr>
-          <td style="background:linear-gradient(135deg,${c.bg} 0%,${c.header}22 100%);padding:40px 40px 32px;text-align:center;border-bottom:1px solid ${c.header}30">
-            <div style="display:inline-block;background:${c.header}20;border:1px solid ${c.header}50;border-radius:50px;padding:8px 24px;margin-bottom:20px">
-              <span style="color:${c.header};font-size:13px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase">${tier.emoji} ${tier.name} Tier ${tier.emoji}</span>
+          <td style="background:linear-gradient(135deg,${c.bg} 0%,${c.header}25 100%);padding:44px 40px 32px;text-align:center;border-bottom:1px solid ${c.header}30">
+            <div style="display:inline-block;background:${c.header}20;border:1px solid ${c.header}60;border-radius:50px;padding:8px 24px;margin-bottom:18px">
+              <span style="color:${c.header};font-size:13px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase">${tier.emoji} ${tier.name} Tier Honors ${tier.emoji}</span>
             </div>
-            <h1 style="color:${c.accent};font-size:28px;font-weight:700;margin:0 0 8px;letter-spacing:-0.5px">Your Certificate is Here</h1>
-            <p style="color:rgba(255,255,255,0.5);font-size:15px;margin:0">${monthName} ${year} Sustainability Award</p>
+            <h1 style="color:#ffffff;font-size:28px;font-weight:800;margin:0 0 8px;letter-spacing:-0.5px">Official Certificate of Sustainability</h1>
+            <p style="color:rgba(255,255,255,0.6);font-size:15px;margin:0">${monthName} ${year} Achievement Award</p>
           </td>
         </tr>
 
         <!-- Body -->
         <tr>
           <td style="padding:36px 40px">
-            <p style="color:rgba(255,255,255,0.85);font-size:16px;line-height:1.7;margin:0 0 24px">
-              Hi <strong style="color:${c.accent}">${name}</strong>,
+            <p style="color:rgba(255,255,255,0.9);font-size:16px;line-height:1.7;margin:0 0 20px">
+              Dear <strong style="color:${c.accent}">${name}</strong>,
             </p>
-            <p style="color:rgba(255,255,255,0.65);font-size:15px;line-height:1.7;margin:0 0 28px">
+            <p style="color:rgba(255,255,255,0.7);font-size:15px;line-height:1.7;margin:0 0 28px">
               ${intro}
             </p>
 
-            <!-- Stats block -->
+            <!-- Stats Block -->
             <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px">
               <tr>
                 <td width="50%" style="padding-right:8px">
-                  <div style="background:rgba(255,255,255,0.04);border:1px solid ${c.header}30;border-radius:12px;padding:20px;text-align:center">
-                    <div style="color:rgba(255,255,255,0.4);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px">Carbon Saved</div>
-                    <div style="color:${c.accent};font-size:26px;font-weight:700;letter-spacing:-0.5px">${carbonSaved.toFixed(2)}</div>
-                    <div style="color:rgba(255,255,255,0.35);font-size:12px;margin-top:4px">kg CO₂</div>
+                  <div style="background:rgba(255,255,255,0.04);border:1px solid ${c.header}35;border-radius:12px;padding:20px;text-align:center">
+                    <div style="color:rgba(255,255,255,0.45);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px">CO₂ Reduced</div>
+                    <div style="color:${c.accent};font-size:26px;font-weight:800;letter-spacing:-0.5px">${carbonSaved.toFixed(2)}</div>
+                    <div style="color:rgba(255,255,255,0.4);font-size:12px;margin-top:4px">kg CO₂ saved</div>
                   </div>
                 </td>
                 <td width="50%" style="padding-left:8px">
-                  <div style="background:${c.header}18;border:1px solid ${c.header}50;border-radius:12px;padding:20px;text-align:center">
-                    <div style="color:rgba(255,255,255,0.4);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px">Reduction</div>
-                    <div style="color:${c.accent};font-size:26px;font-weight:700;letter-spacing:-0.5px">${Math.round(reduction)}%</div>
-                    <div style="color:rgba(255,255,255,0.35);font-size:12px;margin-top:4px">vs last month</div>
+                  <div style="background:${c.header}18;border:1px solid ${c.header}55;border-radius:12px;padding:20px;text-align:center">
+                    <div style="color:rgba(255,255,255,0.45);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px">Monthly Reduction</div>
+                    <div style="color:${c.accent};font-size:26px;font-weight:800;letter-spacing:-0.5px">${Math.round(reduction)}%</div>
+                    <div style="color:rgba(255,255,255,0.4);font-size:12px;margin-top:4px">vs previous month</div>
                   </div>
                 </td>
               </tr>
             </table>
 
-            <!-- Tagline -->
-            <div style="border-left:3px solid ${c.header};padding:12px 20px;background:${c.header}10;border-radius:0 8px 8px 0;margin-bottom:28px">
-              <p style="color:${c.accent};font-size:14px;font-style:italic;margin:0">"${tier.tagline}"</p>
+            <!-- Tagline Quote -->
+            <div style="border-left:4px solid ${c.header};padding:14px 20px;background:${c.header}12;border-radius:0 10px 10px 0;margin-bottom:28px">
+              <p style="color:${c.accent};font-size:14px;font-style:italic;margin:0;line-height:1.5">"${tier.tagline}"</p>
             </div>
 
-            <p style="color:rgba(255,255,255,0.5);font-size:14px;line-height:1.6;margin:0 0 8px">
-              Your official certificate is attached as a PDF. You can download and share it to inspire others in your network.
+            <p style="color:rgba(255,255,255,0.6);font-size:14px;line-height:1.6;margin:0 0 24px">
+              Your high-resolution PDF certificate is attached to this email. You can download, print, or share it on LinkedIn and social media to inspire your friends and community!
             </p>
-          </td>
-        </tr>
 
-        <!-- CTA -->
-        <tr>
-          <td style="padding:0 40px 36px;text-align:center">
-            <a href="https://carbon-footprint-three-psi.vercel.app/dashboard" style="display:inline-block;background:${c.header};color:${c.badgeText};font-size:15px;font-weight:600;padding:14px 36px;border-radius:10px;text-decoration:none;letter-spacing:-0.2px">View Dashboard</a>
+            <div style="text-align:center;padding:12px 0 6px">
+              <a href="https://carbon-footprint-three-psi.vercel.app/dashboard" style="display:inline-block;background:${c.header};color:${c.badgeText};font-size:15px;font-weight:700;padding:14px 38px;border-radius:10px;text-decoration:none;box-shadow:0 8px 24px ${c.header}40">View Dashboard & Credentials</a>
+            </div>
           </td>
         </tr>
 
         <!-- Footer -->
         <tr>
-          <td style="padding:24px 40px;border-top:1px solid rgba(255,255,255,0.06);text-align:center">
-            <p style="color:rgba(255,255,255,0.2);font-size:12px;margin:0 0 6px">&copy; ${year} VASUDHA &middot; Making sustainability measurable</p>
-            <p style="color:rgba(255,255,255,0.15);font-size:11px;margin:0">You received this because you requested a certificate or reduced your carbon footprint this month.</p>
+          <td style="padding:24px 40px;border-top:1px solid rgba(255,255,255,0.08);text-align:center">
+            <p style="color:rgba(255,255,255,0.3);font-size:12px;margin:0 0 6px">&copy; ${year} VASUDHA &middot; Environmental Sustainability Platform</p>
+            <p style="color:rgba(255,255,255,0.2);font-size:11px;margin:0">Making carbon tracking and climate action measurable, verifiable, and inspiring.</p>
           </td>
         </tr>
 
@@ -459,77 +593,112 @@ function buildEmailHtml({ name, monthName, year, carbonSaved, reduction, tier })
 </html>`;
 }
 
-router.post("/send-certificate", async (req, res) => {
+// Resilient Email Sender (Resend + Fallback)
+async function sendEmailNotification({ email, name, monthName, currentYear, tier, carbonSaved, reduction, pdfBase64 }) {
+  let emailSent = false;
+  let emailError = null;
+
   try {
-    const { userId, email, name } = req.body;
+    if (process.env.RESEND_API_KEY) {
+      const resend = new Resend(process.env.RESEND_API_KEY);
+      const emailPayload = {
+        from: "VASUDHA <onboarding@resend.dev>",
+        to: email,
+        subject: `${tier.emoji} Your ${tier.name} Tier Certificate — ${monthName} ${currentYear}`,
+        html: buildEmailHtml({
+          name,
+          monthName,
+          year: currentYear,
+          carbonSaved,
+          reduction,
+          tier,
+        }),
+        attachments: [
+          {
+            filename: `VASUDHA_${tier.name}_Certificate_${monthName}_${currentYear}.pdf`,
+            content: pdfBase64,
+          },
+        ],
+      };
 
-    if (!userId || !email || !name) {
-      return res.status(400).json({ success: false, message: "Missing required fields: userId, email, or name" });
+      const result = await resend.emails.send(emailPayload);
+      if (result.error) {
+        console.warn("Resend direct send warning:", result.error);
+        // If domain restriction on free tier, send a copy to the registered account owner
+        if (result.error.statusCode === 403 && process.env.EMAIL_USER && email !== process.env.EMAIL_USER) {
+          console.log("Sending certificate delivery copy to registered account owner...");
+          const adminResult = await resend.emails.send({
+            ...emailPayload,
+            to: process.env.EMAIL_USER,
+            subject: `[For ${name} <${email}>] ${tier.emoji} Your ${tier.name} Tier Certificate — ${monthName} ${currentYear}`,
+          });
+          if (!adminResult.error) {
+            emailSent = true;
+          }
+        }
+      } else {
+        emailSent = true;
+      }
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return res.status(400).json({ success: false, message: "Invalid email address" });
-    }
-
-    // autoCheck: false → manual click. No deduplication, and users who haven't
-    // earned a real tier still receive a Seedling participation certificate.
-    const result = await buildAndSendCertificate({ userId, email, name, autoCheck: false });
-    res.json(result);
   } catch (err) {
-    console.error("CERTIFICATE ERROR:", err);
-    res.status(500).json({ success: false, message: err?.message || "Certificate email failed" });
+    console.error("Email delivery exception:", err?.message || err);
+    emailError = err?.message;
   }
-});
 
-router.post("/check-and-send", async (req, res) => {
-  try {
-    const { userId, email, name } = req.body;
-    if (!userId || !email || !name) {
-      return res.status(400).json({ success: false, message: "Missing fields" });
+  return { emailSent, emailError };
+}
+
+// Core Certificate Pipeline
+export async function buildAndSendCertificate({ userId, email, name, autoCheck = false }) {
+  // Update or record user profile for monthly automation
+  if (userId && email) {
+    try {
+      await UserProfile.findOneAndUpdate(
+        { userId },
+        { email, name: name || "User", lastActiveAt: new Date() },
+        { upsert: true, new: true }
+      );
+    } catch (profileErr) {
+      console.warn("UserProfile update warning:", profileErr);
     }
-
-    // autoCheck: true → month-end automation. Deduplicated, real tiers only.
-    const result = await buildAndSendCertificate({ userId, email, name, autoCheck: true });
-    res.json(result);
-  } catch (err) {
-    console.error("AUTO CERTIFICATE ERROR:", err);
-    res.status(500).json({ success: false, message: err?.message || "Auto certificate check failed" });
   }
-});
 
-async function buildAndSendCertificate({ userId, email, name, autoCheck = false }) {
   const data = await Emission.find({ userId }).sort({ createdAt: -1 });
   if (!data.length) {
-    return { success: false, message: "No emission data found. Add some activity first!" };
+    return {
+      success: false,
+      eligible: false,
+      message: "No emission activities found yet. Please record some activities in the calculator or tracker first!",
+    };
   }
 
   const now = new Date();
   const currentMonth = now.getMonth();
-  const currentYear  = now.getFullYear();
+  const currentYear = now.getFullYear();
   const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1;
-  const previousYear  = currentMonth === 0 ? currentYear - 1 : currentYear;
+  const previousYear = currentMonth === 0 ? currentYear - 1 : currentYear;
 
-  let currentTotal = 0, previousTotal = 0;
-  data.forEach(item => {
+  let currentTotal = 0,
+    previousTotal = 0;
+  data.forEach((item) => {
     const d = new Date(item.createdAt);
     const val = Number(item.total) || 0;
-    if (d.getMonth() === currentMonth && d.getFullYear() === currentYear)   currentTotal  += val;
+    if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) currentTotal += val;
     if (d.getMonth() === previousMonth && d.getFullYear() === previousYear) previousTotal += val;
   });
 
   const carbonSaved = Math.max(previousTotal - currentTotal, 0);
-  const reduction   = previousTotal > 0 ? (carbonSaved / previousTotal) * 100 : 0;
-  let tier          = getTier(reduction);
+  const reduction = previousTotal > 0 ? (carbonSaved / previousTotal) * 100 : 0;
+  let tier = getTier(reduction);
 
   if (!tier) {
     if (autoCheck) {
-      // Month-end automation stays strict: real tiers only.
       return {
         success: false,
         eligible: false,
-        message: "No reduction this month — no certificate issued.",
+        message: "No reduction detected this month — no certificate issued.",
       };
     }
-    // Manual click: always give the user a certificate.
     tier = TIERS.seedling;
   }
 
@@ -537,22 +706,23 @@ async function buildAndSendCertificate({ userId, email, name, autoCheck = false 
     const alreadySent = await CertificateLog.findOne({
       userId,
       month: currentMonth,
-      year:  currentYear,
+      year: currentYear,
     });
     if (alreadySent) {
       return {
         success: false,
         eligible: false,
-        message: "Certificate already sent this month.",
+        message: "Monthly certificate has already been issued for this period.",
       };
     }
   }
 
   const monthName = now.toLocaleString("default", { month: "long" });
 
+  // Generate luxury PDF certificate
   const doc = new PDFDocument({ layout: "landscape", size: "A4", margin: 0 });
   const buffers = [];
-  doc.on("data", chunk => buffers.push(chunk));
+  doc.on("data", (chunk) => buffers.push(chunk));
 
   await new Promise((resolve, reject) => {
     doc.on("end", resolve);
@@ -570,43 +740,169 @@ async function buildAndSendCertificate({ userId, email, name, autoCheck = false 
     doc.end();
   });
 
-  const pdfBase64 = Buffer.concat(buffers).toString("base64");
+  const pdfBuffer = Buffer.concat(buffers);
+  const pdfBase64 = pdfBuffer.toString("base64");
 
-  const defaultClient = SibApiV3Sdk.ApiClient.instance;
-  defaultClient.authentications["api-key"].apiKey = process.env.BREVO_API_KEY;
-
-  const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
-  const mail = new SibApiV3Sdk.SendSmtpEmail();
-
-  mail.sender      = { name: "VASUDHA", email: process.env.SENDER_EMAIL };
-  mail.to          = [{ email, name }];
-  mail.subject     = `${tier.emoji} Your ${tier.name} Tier Certificate — ${monthName} ${currentYear}`;
-  mail.htmlContent = buildEmailHtml({ name, monthName, year: currentYear, carbonSaved, reduction, tier });
-  mail.attachment  = [{
-    name:    `VASUDHA_${tier.name}_${monthName}_${currentYear}.pdf`,
-    content: pdfBase64,
-  }];
-
-  await apiInstance.sendTransacEmail(mail);
+  // Attempt Email Delivery via Resend
+  const { emailSent } = await sendEmailNotification({
+    email,
+    name,
+    monthName,
+    currentYear,
+    tier,
+    carbonSaved,
+    reduction,
+    pdfBase64,
+  });
 
   if (autoCheck) {
     await CertificateLog.create({
       userId,
       month: currentMonth,
-      year:  currentYear,
-      tier:  tier.name,
+      year: currentYear,
+      tier: tier.name,
     });
   }
 
   return {
-    success:       true,
-    eligible:      true,
+    success: true,
+    eligible: true,
     participation: tier.name === "Seedling",
-    tier:          tier.name,
-    reduction:     Math.round(reduction),
-    carbonSaved:   carbonSaved.toFixed(2),
-    message:       `${tier.emoji} ${tier.name} certificate sent to ${email}!`,
+    tier: tier.name,
+    emoji: tier.emoji,
+    stars: tier.starCount,
+    reduction: Math.round(reduction),
+    carbonSaved: carbonSaved.toFixed(2),
+    currentTotal: currentTotal.toFixed(2),
+    previousTotal: previousTotal.toFixed(2),
+    monthName,
+    year: currentYear,
+    pdfBase64,
+    emailSent,
+    message: emailSent
+      ? `${tier.emoji} ${tier.name} Tier Certificate mailed to ${email}!`
+      : `${tier.emoji} ${tier.name} Tier Certificate generated successfully! Ready to download.`,
   };
+}
+
+// Manual Click Endpoint
+router.post("/send-certificate", async (req, res) => {
+  try {
+    const { userId, email, name } = req.body;
+
+    if (!userId || !email) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required user identity or email address.",
+      });
+    }
+
+    const safeName = (name && name.trim()) ? name.trim() : "Environmental Hero";
+    const result = await buildAndSendCertificate({
+      userId,
+      email,
+      name: safeName,
+      autoCheck: false,
+    });
+
+    res.json(result);
+  } catch (err) {
+    console.error("CERTIFICATE GENERATION ERROR:", err);
+    res.status(500).json({
+      success: false,
+      message: err?.message || "Failed to generate certificate",
+    });
+  }
+});
+
+// Month-End Automatic Check Endpoint
+router.post("/check-and-send", async (req, res) => {
+  try {
+    const { userId, email, name } = req.body;
+    if (!userId || !email) {
+      return res.status(400).json({ success: false, message: "Missing user parameters" });
+    }
+
+    const safeName = (name && name.trim()) ? name.trim() : "Environmental Hero";
+    const result = await buildAndSendCertificate({
+      userId,
+      email,
+      name: safeName,
+      autoCheck: true,
+    });
+
+    res.json(result);
+  } catch (err) {
+    console.error("AUTO CERTIFICATE CHECK ERROR:", err);
+    res.status(500).json({
+      success: false,
+      message: err?.message || "Automatic check failed",
+    });
+  }
+});
+
+// Manual trigger for month-end cron job (for tests or webhook triggers)
+router.post("/trigger-monthly-cron", async (req, res) => {
+  try {
+    const report = await runMonthlyCertificateJob();
+    res.json({ success: true, report });
+  } catch (err) {
+    console.error("CRON TRIGGER ERROR:", err);
+    res.status(500).json({ success: false, message: err?.message });
+  }
+});
+
+// Automated Month-End Batch Pipeline
+export async function runMonthlyCertificateJob() {
+  console.log("=== RUNNING MONTH-END AUTOMATED CERTIFICATE JOB ===");
+  const profiles = await UserProfile.find({});
+  const now = new Date();
+  const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
+
+  const results = {
+    processed: 0,
+    certificatesSent: 0,
+    skipped: 0,
+    errors: 0,
+  };
+
+  for (const user of profiles) {
+    try {
+      results.processed++;
+      // Check if certificate already sent
+      const alreadySent = await CertificateLog.findOne({
+        userId: user.userId,
+        month: currentMonth,
+        year: currentYear,
+      });
+
+      if (alreadySent) {
+        results.skipped++;
+        continue;
+      }
+
+      const res = await buildAndSendCertificate({
+        userId: user.userId,
+        email: user.email,
+        name: user.name || "User",
+        autoCheck: true,
+      });
+
+      if (res.success && res.eligible) {
+        results.certificatesSent++;
+        console.log(`Automated certificate sent to ${user.email} (${res.tier} tier)`);
+      } else {
+        results.skipped++;
+      }
+    } catch (err) {
+      results.errors++;
+      console.error(`Error processing user ${user.userId}:`, err?.message);
+    }
+  }
+
+  console.log("=== MONTH-END CERTIFICATE JOB COMPLETE ===", results);
+  return results;
 }
 
 export default router;

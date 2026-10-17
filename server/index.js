@@ -9,6 +9,7 @@ import emissionRoutes from "./routes/emission.js";
 import trackerRoutes from "./routes/trackerRoutes.js";
 import certificateMailRoutes from "./routes/certificateMail.js";
 import chatbotRoutes from "./routes/chatbotRoutes.js";
+import { initCronJobs } from "./services/cronService.js";
 
 dotenv.config({ path: "./server/.env" });
 
@@ -40,9 +41,10 @@ mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
     console.log("MongoDB Connected Successfully");
+    initCronJobs();
 
     app.listen(PORT, () => {
-      console.log(`console.log Server running on port ${PORT};`);
+      console.log(`Server running on port ${PORT}`);
     });
   })
   .catch((error) => {

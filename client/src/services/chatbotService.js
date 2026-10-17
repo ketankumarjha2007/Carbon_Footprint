@@ -1,5 +1,6 @@
-const API_URL =
-    "https://carbon-footprint-1-a5ae.onrender.com/api/chatbot";
+import { API_BASE_URL } from "../config/api";
+
+const API_URL = `${API_BASE_URL}/api/chatbot`;
 
 
 const getUserLocation = () => {

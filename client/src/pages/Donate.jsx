@@ -4,6 +4,7 @@ import Particles from "react-tsparticles";
 import { auth } from "../firebase";
 import Confetti from "react-confetti";
 import { generateInvoice } from "../utils/generateInvoice";
+import { API_BASE_URL } from "../config/api";
 
 function Donate({ user }) {
   const firebaseUser = auth.currentUser;
@@ -44,7 +45,7 @@ function Donate({ user }) {
   const handleDonate = async (amount) => {
     try {
       const res = await fetch(
-        "https://carbon-footprint-1-a5ae.onrender.com/api/payment/order",
+        `${API_BASE_URL}/api/payment/order`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

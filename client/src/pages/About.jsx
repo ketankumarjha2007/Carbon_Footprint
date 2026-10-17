@@ -2,418 +2,643 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { auth } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
+import {
+  Globe2,
+  Sparkles,
+  ArrowRight,
+  ShieldCheck,
+  Award,
+  TreePine,
+  Calculator,
+  Activity,
+  CheckCircle2,
+  Layers,
+  ChevronRight,
+  TrendingDown,
+  Compass,
+} from "lucide-react";
 import "../styles/About.css";
 
 /* ================= DATA ================= */
 
-const STATS = [
-  { end: 37, decimals: 0, suffix: " Gt", label: "CO₂ released from fossil fuels every year (approx.)" },
-  { end: 4.7, decimals: 1, suffix: " t", label: "CO₂ per person worldwide every year (approx.)" },
-  { end: 1.2, decimals: 1, suffix: " °C", label: "global warming above pre-industrial levels (approx.)" },
+const GLOBAL_STATS = [
+  { value: 37.2, decimals: 1, unit: "Gt", label: "Global fossil CO₂ emissions released each year into our atmosphere." },
+  { value: 4.7, decimals: 1, unit: "Tons", label: "Average yearly carbon footprint per human on Earth." },
+  { value: 1.5, decimals: 1, unit: "°C", label: "Critical climate boundary threshold we must work together to avoid." },
 ];
 
-const CARDS = [
-  { icon: "🌫️", title: "What is a carbon footprint?", text: "A carbon footprint measures the total greenhouse gases produced by human activities like transportation, electricity use and food consumption. Understanding it helps us make better environmental choices." },
-  { icon: "🔥", title: "Why it matters", text: "Climate change is accelerating due to increasing carbon emissions. By tracking and reducing our footprint, we can slow global warming and protect ecosystems around the world." },
-  { icon: "🌿", title: "Our mission", text: "Vasudha helps people monitor their carbon emissions, learn sustainable habits and build a greener future through awareness and responsible choices." },
+const PILLARS = [
+  {
+    icon: "🔬",
+    tag: "AWARENESS",
+    title: "Precision Carbon Science",
+    desc: "Calculate your commute, home electricity, and dietary emissions with standard scientific conversion factors and live regional AQI telemetry.",
+  },
+  {
+    icon: "🏅",
+    tag: "RECOGNITION",
+    title: "Automated Monthly Honors",
+    desc: "Reduce your footprint month-over-month to unlock Seedling, Bronze, Silver, Gold, and Platinum Certificates automatically mailed to your inbox on the last day of each month.",
+  },
+  {
+    icon: "🌱",
+    tag: "RESTORATION",
+    title: "Tangible Environmental Offsets",
+    desc: "Plant verified trees through partnered afforestation drives and receive digital invoices with official serial tracking and environmental impact metrics.",
+  },
 ];
 
-/* illustrative split of a typical household footprint (not personal data) */
-const SOURCES = [
-  { id: "transport", icon: "🚗", name: "Transport", share: 27, color: "#a3f76b", tip: "Fewer solo car trips, carpooling, trains and cycling cut this fastest." },
-  { id: "electricity", icon: "⚡", name: "Electricity", share: 24, color: "#ffd166", tip: "Efficient appliances, LED lighting and a green power plan add up quietly." },
-  { id: "food", icon: "🍽️", name: "Food", share: 22, color: "#ff8f70", tip: "More plants, less waste and local seasonal produce lower food emissions." },
-  { id: "shopping", icon: "🛍️", name: "Shopping", share: 13, color: "#d2a8ff", tip: "Repair, reuse and buy fewer, longer-lasting things." },
-  { id: "waste", icon: "♻️", name: "Waste", share: 8, color: "#71d8ce", tip: "Segregate, compost and recycle so less ends up in landfill." },
-  { id: "water", icon: "💧", name: "Water", share: 6, color: "#78baff", tip: "Fix leaks and use less hot water. Heating it is the hidden cost." },
+const BREAKDOWN_CATEGORIES = [
+  {
+    id: "transport",
+    name: "Transport & Commute",
+    share: 27,
+    color: "#22c55e",
+    tip: "Taking public transit or carpooling just 2 days a week cuts personal vehicle emissions by up to 40%.",
+    savings: "~400 kg CO₂ / year",
+  },
+  {
+    id: "energy",
+    name: "Home Electricity",
+    share: 24,
+    color: "#06b6d4",
+    tip: "Switching to LED lighting and eliminating vampire standby draw reduces home electric footprint by 15-20%.",
+    savings: "~220 kg CO₂ / year",
+  },
+  {
+    id: "food",
+    name: "Diet & Food Waste",
+    share: 22,
+    color: "#eab308",
+    tip: "Incorporating Meatless Mondays and minimizing food spoilage drastically cuts agricultural methane and nitrous oxide.",
+    savings: "~180 kg CO₂ / year",
+  },
+  {
+    id: "goods",
+    name: "Consumption & Goods",
+    share: 13,
+    color: "#a855f7",
+    tip: "Choosing second-hand electronics, repairing clothing, and buying durable goods reduces embodied manufacturing carbon.",
+    savings: "~150 kg CO₂ / year",
+  },
+  {
+    id: "waste",
+    name: "Waste & Landfills",
+    share: 8,
+    color: "#3b82f6",
+    tip: "Composting organic scraps prevents anaerobic decomposition in landfills, reducing direct methane emissions.",
+    savings: "~90 kg CO₂ / year",
+  },
+  {
+    id: "water",
+    name: "Hot Water & Utilities",
+    share: 6,
+    color: "#ec4899",
+    tip: "Installing aerated showerheads and lowering water heater thermostat by 5°C saves substantial electricity.",
+    savings: "~70 kg CO₂ / year",
+  },
+];
+
+const FEATURES_LIST = [
+  {
+    to: "/calculator",
+    icon: <Calculator className="feat-ico" />,
+    badge: "CALCULATOR",
+    title: "Scientific Carbon Calculator",
+    desc: "Input your travel, power, and food habits to see your carbon total and air quality index in under 60 seconds.",
+    cta: "Calculate Footprint",
+  },
+  {
+    to: "/tracker",
+    icon: <Activity className="feat-ico" />,
+    badge: "TRACKER",
+    title: "Daily Activity & Habit Log",
+    desc: "Log daily sustainable choices and watch your cumulative emission reduction curve climb with interactive charts.",
+    cta: "Start Tracking",
+  },
+  {
+    to: "/dashboard",
+    icon: <Award className="feat-ico" />,
+    badge: "CERTIFICATES",
+    title: "Monthly Honor Certificates",
+    desc: "Earn prestige honors from Seedling to Platinum. Certificates are automatically generated and emailed on month-end.",
+    cta: "View Credentials",
+  },
+  {
+    to: "/donate",
+    icon: <TreePine className="feat-ico" />,
+    badge: "AFFORESTATION",
+    title: "Verified Tree Plantation",
+    desc: "Contribute to afforestation projects with instant Razorpay payments and receive verifiable PDF donation invoices.",
+    cta: "Plant Trees",
+  },
 ];
 
 const STEPS = [
-  { icon: "📊", title: "Measure", front: "Find your number", back: "Enter your travel, energy and food habits and see your carbon footprint in seconds." },
-  { icon: "🔍", title: "Understand", front: "See what drives it", back: "Find out which activities add the most emissions, so you know where to focus." },
-  { icon: "🌱", title: "Reduce", front: "Make small swaps", back: "Get simple, practical habits that cut emissions without changing your whole life." },
-  { icon: "🌍", title: "Inspire", front: "Spread the change", back: "Share what works. When more people act, the impact grows far beyond one person." },
+  {
+    num: "01",
+    title: "Calculate Footprint",
+    desc: "Quantify your daily transport, power consumption, and diet into verified kilograms of CO₂.",
+  },
+  {
+    num: "02",
+    title: "Track Activity",
+    desc: "Log sustainable actions every day to accumulate green reward points and monitor your reduction trajectory.",
+  },
+  {
+    num: "03",
+    title: "Heal the Earth",
+    desc: "Sponsor native saplings to offset non-avoidable emissions and receive verified tax-compliant receipts.",
+  },
+  {
+    num: "04",
+    title: "Receive Honors",
+    desc: "On the final day of each month, your official Certificate of Sustainability is automatically generated and emailed.",
+  },
 ];
 
-const HABITS = ["Take the stairs", "Carry a bottle", "Switch off standby", "Meatless Monday", "Walk short trips", "Fix the leak", "Air-dry clothes", "Buy second-hand", "Compost scraps", "Share a ride"];
+const PLEDGE_ITEMS = [
+  { id: "transit", title: "Carpool or transit 2 days/wk", kg: 400, icon: "🚌" },
+  { id: "walk", title: "Walk or cycle short errands", kg: 250, icon: "🚶" },
+  { id: "foodwaste", title: "Zero food waste at home", kg: 200, icon: "🍃" },
+  { id: "meatless", title: "Plant-based meal days", kg: 160, icon: "🥗" },
+  { id: "led", title: "LEDs & zero standby power", kg: 140, icon: "💡" },
+  { id: "thrift", title: "Buy refurbished / second-hand", kg: 120, icon: "♻️" },
+  { id: "coldwash", title: "Cold wash & air-dry clothes", kg: 100, icon: "👕" },
+  { id: "shower", title: "Shorter water-efficient showers", kg: 70, icon: "🚿" },
+];
 
-/* ================= HOOKS ================= */
+/* ================= 3D PARTICLE EARTH CANVAS ================= */
 
-function useReveal(rootRef) {
+function EarthCanvas() {
+  const canvasRef = useRef(null);
+
   useEffect(() => {
-    const els = rootRef.current?.querySelectorAll("[data-reveal]");
-    if (!els) return;
-    const io = new IntersectionObserver(
-      (entries) => entries.forEach((e) => {
-        if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
-      }),
-      { threshold: 0.12 }
-    );
-    els.forEach((el) => io.observe(el));
-    return () => io.disconnect();
-  }, [rootRef]);
-}
-
-/* ================= COMPONENTS ================= */
-
-function ParticleCanvas() {
-  const ref = useRef(null);
-  useEffect(() => {
-    const canvas = ref.current;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
     const ctx = canvas.getContext("2d");
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const mouse = { x: -9999, y: -9999 };
-    let w = 0, h = 0, raf, pts = [], running = true;
+    let animationId;
+    let width = 0;
+    let height = 0;
+    let rotation = 0;
 
-    const build = () => {
+    const resize = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      w = canvas.clientWidth; h = canvas.clientHeight;
-      canvas.width = w * dpr; canvas.height = h * dpr;
+      width = canvas.clientWidth;
+      height = canvas.clientHeight;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      const count = Math.min(70, Math.floor((w * h) / 24000));
-      pts = Array.from({ length: count }, () => ({
-        x: Math.random() * w, y: Math.random() * h,
-        vx: (Math.random() - 0.5) * 0.3, vy: (Math.random() - 0.5) * 0.3,
-        r: Math.random() * 1.4 + 0.5,
-      }));
     };
-    build();
 
-    const draw = () => {
-      if (!running) return;
-      ctx.clearRect(0, 0, w, h);
-      for (let i = 0; i < pts.length; i++) {
-        const p = pts[i];
-        if (!reduce) { p.x += p.vx; p.y += p.vy; }
-        if (p.x < 0 || p.x > w) p.vx *= -1;
-        if (p.y < 0 || p.y > h) p.vy *= -1;
-        const dx = p.x - mouse.x, dy = p.y - mouse.y, dm = Math.hypot(dx, dy);
-        if (dm < 120 && dm > 0) { p.x += (dx / dm) * 1.2; p.y += (dy / dm) * 1.2; }
-        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(125,220,143,0.7)"; ctx.fill();
-        for (let j = i + 1; j < pts.length; j++) {
-          const q = pts[j], d = Math.hypot(p.x - q.x, p.y - q.y);
-          if (d < 110) {
-            ctx.strokeStyle = `rgba(74,222,128,${0.14 * (1 - d / 110)})`;
-            ctx.lineWidth = 0.7; ctx.beginPath();
-            ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.stroke();
-          }
+    resize();
+    window.addEventListener("resize", resize);
+
+    // Generate sphere points
+    const points = [];
+    const count = 420;
+    for (let i = 0; i < count; i++) {
+      const lat = Math.acos(2 * Math.random() - 1) - Math.PI / 2;
+      const lon = 2 * Math.PI * Math.random();
+      points.push({ lat, lon });
+    }
+
+    const render = () => {
+      ctx.clearRect(0, 0, width, height);
+
+      const cx = width / 2;
+      const cy = height / 2;
+      const radius = Math.min(width, height) * 0.42;
+
+      // Atmospheric outer glow
+      const glowGrad = ctx.createRadialGradient(cx, cy, radius * 0.7, cx, cy, radius * 1.35);
+      glowGrad.addColorStop(0, "rgba(34, 197, 94, 0.2)");
+      glowGrad.addColorStop(0.5, "rgba(6, 182, 212, 0.1)");
+      glowGrad.addColorStop(1, "transparent");
+      ctx.fillStyle = glowGrad;
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius * 1.35, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Base globe sphere
+      const sphereGrad = ctx.createRadialGradient(cx - radius * 0.3, cy - radius * 0.3, radius * 0.1, cx, cy, radius);
+      sphereGrad.addColorStop(0, "#0f2e22");
+      sphereGrad.addColorStop(0.6, "#061814");
+      sphereGrad.addColorStop(1, "#020a08");
+      ctx.fillStyle = sphereGrad;
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Sphere border ring
+      ctx.strokeStyle = "rgba(74, 222, 128, 0.4)";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Rotating particle constellation
+      rotation += 0.007;
+
+      for (let i = 0; i < points.length; i++) {
+        const p = points[i];
+        const lon = p.lon + rotation;
+        const x = radius * Math.cos(p.lat) * Math.sin(lon);
+        const y = radius * Math.sin(p.lat);
+        const z = radius * Math.cos(p.lat) * Math.cos(lon);
+
+        // Only draw front-facing particles
+        if (z > -radius * 0.15) {
+          const depth = (z + radius) / (radius * 2);
+          const alpha = Math.max(0.15, depth);
+          const size = 1.2 + depth * 1.6;
+
+          ctx.fillStyle = `rgba(74, 222, 128, ${alpha})`;
+          ctx.beginPath();
+          ctx.arc(cx + x, cy + y, size, 0, Math.PI * 2);
+          ctx.fill();
         }
       }
-      raf = requestAnimationFrame(draw);
-    };
-    draw();
 
-    /* pause when the tab is hidden to save battery */
-    const onVis = () => {
-      running = !document.hidden;
-      if (running) draw(); else cancelAnimationFrame(raf);
+      // Orbital Rings
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(0.35);
+      ctx.scale(1, 0.32);
+      ctx.strokeStyle = "rgba(56, 189, 248, 0.35)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(0, 0, radius * 1.3, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Satellite on ring
+      const satAngle = -rotation * 2;
+      const sx = radius * 1.3 * Math.cos(satAngle);
+      const sy = radius * 1.3 * Math.sin(satAngle);
+      ctx.fillStyle = "#38bdf8";
+      ctx.shadowColor = "#38bdf8";
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      ctx.arc(sx, sy, 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      animationId = requestAnimationFrame(render);
     };
-    const onMove = (e) => { mouse.x = e.clientX; mouse.y = e.clientY; };
-    window.addEventListener("resize", build);
-    window.addEventListener("pointermove", onMove);
-    document.addEventListener("visibilitychange", onVis);
+
+    render();
+
     return () => {
-      running = false; cancelAnimationFrame(raf);
-      window.removeEventListener("resize", build);
-      window.removeEventListener("pointermove", onMove);
-      document.removeEventListener("visibilitychange", onVis);
+      cancelAnimationFrame(animationId);
+      window.removeEventListener("resize", resize);
     };
   }, []);
-  return <canvas ref={ref} className="ab-canvas" aria-hidden="true" />;
+
+  return <canvas ref={canvasRef} className="earth-canvas-element" aria-hidden="true" />;
 }
 
-function TiltCard({ children, className = "", max = 8 }) {
-  const ref = useRef(null);
-  const onMove = (e) => {
-    if (e.pointerType === "touch") return;
-    const el = ref.current, r = el.getBoundingClientRect();
-    const px = (e.clientX - r.left) / r.width, py = (e.clientY - r.top) / r.height;
-    el.style.setProperty("--ry", `${(px - 0.5) * max * 2}deg`);
-    el.style.setProperty("--rx", `${(0.5 - py) * max * 2}deg`);
-    el.style.setProperty("--gx", `${px * 100}%`);
-    el.style.setProperty("--gy", `${py * 100}%`);
-  };
-  const onLeave = () => {
-    ref.current.style.setProperty("--rx", "0deg");
-    ref.current.style.setProperty("--ry", "0deg");
-  };
-  return (
-    <div className={`tilt ${className}`} ref={ref} onPointerMove={onMove} onPointerLeave={onLeave}>
-      <div className="tilt-inner">
-        <span className="tilt-glare" aria-hidden="true" />
-        {children}
-      </div>
-    </div>
-  );
-}
+/* ================= MAIN COMPONENT ================= */
 
-function Counter({ end, decimals = 0, suffix = "" }) {
-  const ref = useRef(null);
-  const [val, setVal] = useState(0);
-  useEffect(() => {
-    const io = new IntersectionObserver(([entry]) => {
-      if (!entry.isIntersecting) return;
-      io.disconnect();
-      const start = performance.now();
-      const tick = (t) => {
-        const p = Math.min((t - start) / 1600, 1);
-        setVal(end * (1 - Math.pow(1 - p, 4)));
-        if (p < 1) requestAnimationFrame(tick);
-      };
-      requestAnimationFrame(tick);
-    }, { threshold: 0.5 });
-    io.observe(ref.current);
-    return () => io.disconnect();
-  }, [end]);
-  return <span ref={ref}>{val.toFixed(decimals)}{suffix}</span>;
-}
-
-function Globe() {
-  return (
-    <div className="globe-scene" aria-hidden="true">
-      <div className="globe">
-        <div className="globe-halo" />
-        <div className="globe-sphere">
-          <div className="globe-land" />
-          <div className="globe-land globe-land-2" />
-          <div className="globe-clouds" />
-          <div className="globe-shade" />
-        </div>
-        <div className="ring ring-a" />
-        <div className="ring ring-b" />
-        <div className="orbit orbit-1"><i /></div>
-        <div className="orbit orbit-2"><i /></div>
-      </div>
-    </div>
-  );
-}
-
-/* interactive donut: pick a source, see its share and a practical tip */
-function FootprintExplorer() {
-  const [active, setActive] = useState(0);
-  const R = 84, C = 2 * Math.PI * R, GAP = 4;
-  const offsets = SOURCES.map((_, i) =>
-    SOURCES.slice(0, i).reduce((total, source) => total + (source.share / 100) * C, 0)
-  );
-  const cur = SOURCES[active];
-
-  return (
-    <div className="explorer">
-      <div className="donut-wrap">
-        <svg viewBox="0 0 220 220" className="donut" role="img" aria-label="Typical footprint split by category">
-          {SOURCES.map((s, i) => {
-            const len = (s.share / 100) * C;
-            return (
-              <circle
-                key={s.id}
-                cx="110" cy="110" r={R}
-                className={`seg ${i === active ? "on" : ""}`}
-                style={{ "--segment-color": s.color }}
-                strokeDasharray={`${Math.max(len - GAP, 0)} ${C}`}
-                strokeDashoffset={-offsets[i]}
-              />
-            );
-          })}
-        </svg>
-        <div className="donut-core" aria-live="polite">
-          <span className="core-icon">{cur.icon}</span>
-          <strong>{cur.share}%</strong>
-          <span>{cur.name}</span>
-        </div>
-      </div>
-
-      <div className="explorer-side">
-        <div className="chips" role="tablist" aria-label="Footprint sources">
-          {SOURCES.map((s, i) => (
-            <button
-              key={s.id}
-              role="tab"
-              aria-selected={i === active}
-              className={`chip ${i === active ? "on" : ""}`}
-              onClick={() => setActive(i)}
-            >
-              <span aria-hidden="true">{s.icon}</span> {s.name}
-            </button>
-          ))}
-        </div>
-        <p className="explorer-tip" key={cur.id}>{cur.tip}</p>
-        <p className="fine">Illustrative split for a typical household. Your own numbers will differ, and the calculator shows them.</p>
-      </div>
-    </div>
-  );
-}
-
-/* ================= PAGE ================= */
-
-function About() {
-  const pageRef = useRef(null);
-  const heroRef = useRef(null);
+export default function About() {
   const [user, setUser] = useState(null);
-  const [step, setStep] = useState(0);
-
-  useReveal(pageRef);
+  const [activeCategory, setActiveCategory] = useState(0);
+  const [pledges, setPledges] = useState(new Set(["transit", "meatless", "led"]));
+  const [activeStep, setActiveStep] = useState(0);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => setUser(u));
     return () => unsub();
   }, []);
 
-  /* cursor spotlight, globe parallax, scroll progress */
-  useEffect(() => {
-    const page = pageRef.current, hero = heroRef.current;
-    const onMove = (e) => {
-      page.style.setProperty("--px", `${e.clientX}px`);
-      page.style.setProperty("--py", `${e.clientY}px`);
-      if (e.pointerType === "touch") return;
-      hero.style.setProperty("--mx", (e.clientX / window.innerWidth - 0.5).toFixed(3));
-      hero.style.setProperty("--my", (e.clientY / window.innerHeight - 0.5).toFixed(3));
-    };
-    const onScroll = () => {
-      const max = document.documentElement.scrollHeight - window.innerHeight;
-      page.style.setProperty("--sp", max > 0 ? (window.scrollY / max).toFixed(3) : 0);
-    };
-    window.addEventListener("pointermove", onMove);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
-    return () => {
-      window.removeEventListener("pointermove", onMove);
-      window.removeEventListener("scroll", onScroll);
-    };
-  }, []);
+  const togglePledge = (id) => {
+    setPledges((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
-  const ctaPath = user ? "/calculator" : "/login";
-  const ctaText = user ? "Open the calculator" : "Sign in to start";
-  const s = STEPS[step];
+  const totalPledgeKg = PLEDGE_ITEMS.reduce((sum, p) => (pledges.has(p.id) ? sum + p.kg : sum), 0);
+  const equivalentTrees = (totalPledgeKg / 21).toFixed(1);
+  const activeBreakdown = BREAKDOWN_CATEGORIES[activeCategory];
 
   return (
-    <div className="about-page" ref={pageRef}>
-      <div className="ab-progress" aria-hidden="true" />
-      <ParticleCanvas />
-      <div className="ab-spotlight" aria-hidden="true" />
-      <div className="ab-glow ab-glow-1" aria-hidden="true" />
-      <div className="ab-glow ab-glow-2" aria-hidden="true" />
+    <div className="about-v2-page">
+      {/* Dynamic Ambient Glows */}
+      <div className="ab2-glow ab2-glow-top" />
+      <div className="ab2-glow ab2-glow-mid" />
+      <div className="ab2-glow ab2-glow-bottom" />
 
-      {/* HERO */}
-      <section className="about-hero" ref={heroRef}>
-        <div className="hero-copy">
-          <p className="hero-eyebrow"><span aria-hidden="true" /> A better future starts with awareness</p>
-          <h1>
-            Make your carbon footprint <em>visible.</em>
+      {/* ========================================================
+          1. HERO SECTION (Planet Telemetry & Vision)
+          ======================================================== */}
+      <section className="ab2-hero">
+        <div className="ab2-hero-content">
+          <div className="ab2-hero-badge">
+            <span className="badge-pulse" />
+            <span className="badge-text">PLANETARY SUSTAINABILITY INTELLIGENCE</span>
+          </div>
+
+          <h1 className="ab2-hero-title">
+            Making Personal Climate Action <em>Measurable, Visible & Honored.</em>
           </h1>
-          <p className="hero-sub">
-            Vasudha helps you understand what your daily choices cost the
-            planet, and shows the smallest changes that make the biggest
-            difference.
+
+          <p className="ab2-hero-sub">
+            Vasudha translates your daily habits into actionable carbon data, certifies your month-over-month reductions with official credentials, and funds verified tree plantations to restore our biosphere.
           </p>
-          <div className="hero-actions">
-            <a href="#mission" className="ab-btn ab-btn-solid">Our mission</a>
-            <a href="#how" className="ab-btn ab-btn-ghost">How it works</a>
+
+          <div className="ab2-hero-actions">
+            <Link to={user ? "/calculator" : "/login"} className="ab2-btn-primary">
+              <span>{user ? "Open Calculator" : "Start Tracking Free"}</span>
+              <ArrowRight size={18} />
+            </Link>
+            <a href="#how-it-works" className="ab2-btn-secondary">
+              <span>Explore How It Works</span>
+            </a>
           </div>
-          <a className="hero-scroll" href="#impact"><span aria-hidden="true">↓</span> Scroll to explore</a>
-        </div>
-        <Globe />
-      </section>
 
-      {/* HABIT MARQUEE */}
-      <div className="marquee" aria-hidden="true">
-        <div className="marquee-track">
-          {[...HABITS, ...HABITS].map((h, i) => <span key={i}>{h}</span>)}
-        </div>
-      </div>
-
-      {/* STATS */}
-      <section className="ab-section stats" id="impact">
-        <div className="section-intro stats-intro">
-          <span className="section-eyebrow">THE BIG PICTURE</span>
-          <h2 className="section-title">Small choices. Planet-sized impact.</h2>
-          <p className="section-lead">A clearer view of the challenge is the first step toward changing it.</p>
-        </div>
-        {STATS.map((st, i) => (
-          <div key={st.label} className="rise" data-reveal style={{ "--d": `${i * 0.1}s` }}>
-            <TiltCard className="stat" max={6}>
-              <strong className="stat-num"><Counter {...st} /></strong>
-              <span className="stat-label">{st.label}</span>
-            </TiltCard>
+          <div className="ab2-hero-metrics">
+            <div className="hero-metric-pill">
+              <span className="h-val">100%</span>
+              <span className="h-lbl">Scientific Formulas</span>
+            </div>
+            <div className="hero-metric-pill">
+              <span className="h-val">5 Tiers</span>
+              <span className="h-lbl">Monthly Certificates</span>
+            </div>
+            <div className="hero-metric-pill">
+              <span className="h-val">Razorpay</span>
+              <span className="h-lbl">Verified Afforestation</span>
+            </div>
           </div>
-        ))}
-      </section>
-
-      {/* INFO CARDS */}
-      <section className="ab-section about-cards" id="mission">
-        <div className="section-intro mission-intro">
-          <span className="section-eyebrow">WHY VASUDHA</span>
-          <h2 className="section-title">Make the invisible, understandable.</h2>
-          <p className="section-lead">Climate action gets easier when you can see where you are, and what to do next.</p>
         </div>
-        {CARDS.map((c, i) => (
-          <div key={c.title} className="rise" data-reveal style={{ "--d": `${i * 0.12}s` }}>
-            <TiltCard className="about-card">
-              <div className="card-icon">{c.icon}</div>
-              <h2>{c.title}</h2>
-              <p>{c.text}</p>
-            </TiltCard>
+
+        {/* 3D Earth Canvas Hub */}
+        <div className="ab2-hero-visual">
+          <EarthCanvas />
+          <div className="orbit-chip chip-top">
+            <span className="chip-ico">📊</span>
+            <span>Live Emission Telemetry</span>
           </div>
-        ))}
+          <div className="orbit-chip chip-right">
+            <span className="chip-ico">🎖️</span>
+            <span>Automated End-of-Month Honors</span>
+          </div>
+          <div className="orbit-chip chip-bottom">
+            <span className="chip-ico">🌲</span>
+            <span>Afforestation Receipts</span>
+          </div>
+        </div>
       </section>
 
-      {/* EXPLORER */}
-      <section className="ab-section rise" data-reveal>
-        <h2 className="section-title">Where your footprint comes from</h2>
-        <p className="section-lead">
-          Everyday choices add up. Pick a category to see how much it usually
-          contributes and where a small change helps most.
-        </p>
-        <FootprintExplorer />
+      {/* ========================================================
+          2. GLOBAL CLIMATE CONTEXT (Counters)
+          ======================================================== */}
+      <section className="ab2-section ab2-stats-section">
+        <div className="ab2-section-head center">
+          <span className="ab2-eyebrow">THE GLOBAL CHALLENGE</span>
+          <h2>The Numbers That Define Our Generation</h2>
+          <p>Understanding the scale of global greenhouse emissions makes individual action urgently meaningful.</p>
+        </div>
+
+        <div className="ab2-stats-grid">
+          {GLOBAL_STATS.map((st, i) => (
+            <div key={i} className="ab2-stat-card">
+              <div className="stat-card-glow" />
+              <div className="stat-card-number">
+                <span className="num-val">{st.value}</span>
+                <span className="num-unit">{st.unit}</span>
+              </div>
+              <p className="stat-card-label">{st.label}</p>
+            </div>
+          ))}
+        </div>
       </section>
 
-      {/* HOW IT WORKS */}
-      <section className="ab-section" id="how">
-        <h2 className="section-title rise" data-reveal>How Vasudha works</h2>
-        <div className="how rise" data-reveal>
-          <div className="how-tabs" role="tablist" aria-label="Steps">
-            {STEPS.map((t, i) => (
+      {/* ========================================================
+          3. THE THREE PILLARS
+          ======================================================== */}
+      <section className="ab2-section">
+        <div className="ab2-section-head">
+          <span className="ab2-eyebrow">WHY VASUDHA</span>
+          <h2>The Three Pillars of Conscious Stewardship</h2>
+          <p>We combine personal telemetry, motivational recognition, and direct ecological restoration into one cohesive platform.</p>
+        </div>
+
+        <div className="ab2-pillars-grid">
+          {PILLARS.map((p, i) => (
+            <div key={i} className="ab2-pillar-card">
+              <div className="pillar-header">
+                <span className="pillar-icon">{p.icon}</span>
+                <span className="pillar-tag">{p.tag}</span>
+              </div>
+              <h3>{p.title}</h3>
+              <p>{p.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ========================================================
+          4. INTERACTIVE FOOTPRINT BREAKDOWN
+          ======================================================== */}
+      <section className="ab2-section">
+        <div className="ab2-section-head center">
+          <span className="ab2-eyebrow">SOURCE INTELLIGENCE</span>
+          <h2>Where Does an Individual's Footprint Come From?</h2>
+          <p>Click any sector below to inspect typical lifestyle share and high-impact mitigation swaps.</p>
+        </div>
+
+        <div className="ab2-breakdown-card">
+          <div className="breakdown-nav">
+            {BREAKDOWN_CATEGORIES.map((cat, i) => (
               <button
-                key={t.title}
-                role="tab"
-                aria-selected={i === step}
-                className={`how-tab ${i === step ? "on" : ""} ${i < step ? "done" : ""}`}
-                onClick={() => setStep(i)}
+                key={cat.id}
+                type="button"
+                className={`breakdown-tab ${i === activeCategory ? "active" : ""}`}
+                onClick={() => setActiveCategory(i)}
+                style={{ "--cat-color": cat.color }}
               >
-                <span className="how-no">{i + 1}</span>
-                <span>{t.title}</span>
+                <span className="tab-dot" />
+                <span className="tab-name">{cat.name}</span>
+                <span className="tab-share">{cat.share}%</span>
               </button>
             ))}
           </div>
-          <div className="how-panel" key={s.title} role="tabpanel">
-            <span className="how-icon" aria-hidden="true">{s.icon}</span>
-            <div>
-              <h3>{s.front}</h3>
-              <p>{s.back}</p>
+
+          <div className="breakdown-details-panel">
+            <div className="details-header">
+              <div className="dh-left">
+                <span className="dh-title">{activeBreakdown.name}</span>
+                <span className="dh-badge" style={{ backgroundColor: `${activeBreakdown.color}25`, color: activeBreakdown.color }}>
+                  {activeBreakdown.share}% of average total
+                </span>
+              </div>
+              <div className="dh-savings">
+                <span className="sav-label">Potential Yearly Reduction</span>
+                <span className="sav-val">{activeBreakdown.savings}</span>
+              </div>
             </div>
-            <button
-              className="ab-btn ab-btn-ghost"
-              onClick={() => setStep((step + 1) % STEPS.length)}
-            >
-              {step === STEPS.length - 1 ? "Start over" : "Next step"}
-            </button>
+
+            <div className="breakdown-bar-track">
+              <div
+                className="breakdown-bar-fill"
+                style={{ width: `${activeBreakdown.share * 3.7}%`, backgroundColor: activeBreakdown.color }}
+              />
+            </div>
+
+            <div className="breakdown-tip-box">
+              <div className="tip-badge">💡 ACTIONABLE SWAP</div>
+              <p className="tip-text">{activeBreakdown.tip}</p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="ab-section rise" data-reveal>
-        <TiltCard className="cta-card" max={4}>
-          <h2>Every small step counts</h2>
+      {/* ========================================================
+          5. FEATURES BENTO GRID
+          ======================================================== */}
+      <section className="ab2-section">
+        <div className="ab2-section-head">
+          <span className="ab2-eyebrow">PLATFORM CAPABILITIES</span>
+          <h2>A Unified Suite for Climate Consciousness</h2>
+          <p>Everything you need to measure, track, improve, and offset your personal ecological impact.</p>
+        </div>
+
+        <div className="ab2-features-grid">
+          {FEATURES_LIST.map((f, i) => (
+            <Link key={i} to={f.to} className="ab2-feature-card">
+              <div className="feat-card-top">
+                <div className="feat-icon-wrap">{f.icon}</div>
+                <span className="feat-badge">{f.badge}</span>
+              </div>
+              <h3>{f.title}</h3>
+              <p>{f.desc}</p>
+              <div className="feat-cta">
+                <span>{f.cta}</span>
+                <ChevronRight size={16} />
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* ========================================================
+          6. HOW VASUDHA WORKS (4-Step Sequential Journey)
+          ======================================================== */}
+      <section className="ab2-section" id="how-it-works">
+        <div className="ab2-section-head center">
+          <span className="ab2-eyebrow">THE WORKFLOW</span>
+          <h2>How Vasudha Guides Your Journey</h2>
+          <p>From day one calculation to monthly verified credentials.</p>
+        </div>
+
+        <div className="ab2-steps-grid">
+          {STEPS.map((step, i) => (
+            <div key={i} className="ab2-step-card">
+              <div className="step-num-badge">{step.num}</div>
+              <h3>{step.title}</h3>
+              <p>{step.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ========================================================
+          7. CLIMATE PLEDGE SIMULATOR
+          ======================================================== */}
+      <section className="ab2-section">
+        <div className="ab2-section-head center">
+          <span className="ab2-eyebrow">INTERACTIVE SIMULATOR</span>
+          <h2>Build Your Annual Climate Pledge</h2>
+          <p>Toggle real habits below to estimate your cumulative yearly carbon savings and tree equivalents.</p>
+        </div>
+
+        <div className="ab2-pledge-container">
+          <div className="pledge-items-grid">
+            {PLEDGE_ITEMS.map((item) => {
+              const isChecked = pledges.has(item.id);
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  className={`pledge-toggle-card ${isChecked ? "active" : ""}`}
+                  onClick={() => togglePledge(item.id)}
+                >
+                  <span className="p-icon">{item.icon}</span>
+                  <div className="p-text">
+                    <span className="p-title">{item.title}</span>
+                    <span className="p-kg">~{item.kg} kg CO₂ / yr</span>
+                  </div>
+                  <div className="p-check">
+                    <CheckCircle2 size={18} />
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="pledge-score-panel">
+            <div className="score-gauge-ring">
+              <svg viewBox="0 0 160 160" className="gauge-svg">
+                <circle cx="80" cy="80" r="68" className="gauge-track" />
+                <circle
+                  cx="80"
+                  cy="80"
+                  r="68"
+                  className="gauge-fill"
+                  style={{
+                    strokeDasharray: 427,
+                    strokeDashoffset: Math.max(0, 427 - (totalPledgeKg / 1400) * 427),
+                  }}
+                />
+              </svg>
+              <div className="gauge-center-text">
+                <span className="gauge-num">{totalPledgeKg}</span>
+                <span className="gauge-unit">kg CO₂ saved</span>
+              </div>
+            </div>
+
+            <div className="pledge-trees-badge">
+              <span className="pt-icon">🌳</span>
+              <span>Equivalent to <strong>{equivalentTrees}</strong> mature trees absorbing CO₂ for a full year</span>
+            </div>
+
+            <p className="pledge-active-count">
+              {pledges.size} of {PLEDGE_ITEMS.length} commitments selected
+            </p>
+
+            <Link to={user ? "/calculator" : "/login"} className="pledge-cta-btn">
+              <span>{user ? "Calculate Your Real Baseline" : "Sign In & Begin Saving"}</span>
+              <ArrowRight size={16} />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ========================================================
+          8. GRAND FINALE CTA
+          ======================================================== */}
+      <section className="ab2-section ab2-cta-section">
+        <div className="ab2-cta-card">
+          <div className="cta-sparkle-badge">
+            <Sparkles size={14} />
+            <span>JOIN THE COMMUNITY</span>
+          </div>
+          <h2>Every Fraction of a Degree Matters</h2>
           <p>
-            Start by learning your number, then make one change this week.
-            Together we can leave a cleaner planet behind.
+            Start tracking today, earn monthly honor certificates for measurable reductions, and build a greener world together.
           </p>
-          <Link to={ctaPath} className="ab-btn ab-btn-solid">{ctaText}</Link>
-        </TiltCard>
+          <div className="cta-btn-row">
+            <Link to={user ? "/dashboard" : "/login"} className="ab2-btn-primary">
+              <span>{user ? "Go to Dashboard" : "Create Free Account"}</span>
+              <ArrowRight size={18} />
+            </Link>
+            <Link to="/donate" className="ab2-btn-secondary">
+              <span>Plant a Tree Now</span>
+            </Link>
+          </div>
+        </div>
       </section>
     </div>
   );
 }
-
-export default About;

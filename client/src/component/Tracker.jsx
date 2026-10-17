@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { auth } from "../firebase";
 import "../styles/tracker.css";
+import { API_BASE_URL } from "../config/api";
 
 /* 🔥 CHART IMPORTS */
 import {
@@ -39,7 +40,7 @@ try{
   }
 
   const res = await fetch(
-  `https://carbon-footprint-1-a5ae.onrender.com/api/emission/${user.uid}`
+    `${API_BASE_URL}/api/emission/${user.uid}`
   );
 
   const data = await res.json();

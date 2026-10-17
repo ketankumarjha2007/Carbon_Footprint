@@ -4,6 +4,7 @@ import { db } from "../firebase";
 import { ref, onValue } from "firebase/database";
 import "../styles/calculator.css";
 import { useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../config/api";
 
 /* ---------------- FACTORS ---------------- */
 const travelFactors = {
@@ -178,7 +179,7 @@ export default function Calculator() {
       );
 
       const res = await fetch(
-        "https://carbon-footprint-1-a5ae.onrender.com/api/emission/save",
+        `${API_BASE_URL}/api/emission/save`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -201,7 +202,7 @@ export default function Calculator() {
         setLevel(result.data.level);
 
         await fetch(
-          `https://carbon-footprint-1-a5ae.onrender.com/api/emission/stats/${user.uid}`
+          `${API_BASE_URL}/api/emission/stats/${user.uid}`
         );
       } else {
         setError("Reward system failed. Try again.");

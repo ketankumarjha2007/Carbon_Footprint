@@ -1,5 +1,6 @@
 import "../styles/Contact.css";
 import { useState } from "react";
+import { API_BASE_URL } from "../config/api";
 
 function Contact() {
 
@@ -14,7 +15,7 @@ function Contact() {
     e.preventDefault();
     setLoading(true);
 
-    const response = await fetch("https://carbon-footprint-1-a5ae.onrender.com/api/contact/send",{
+    const response = await fetch(`${API_BASE_URL}/api/contact/send`,{
       method:"POST",
       headers:{
         "Content-Type":"application/json"
