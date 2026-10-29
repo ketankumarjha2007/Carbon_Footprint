@@ -589,7 +589,7 @@ Distributed under the **ISC License**. See `LICENSE` for more information.
 *Full Stack Engineer • IoT & Climate Tech Architect • Systems Builder*
 
 [![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/ketankumarjha2007)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://linkedin.com)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/ketan-kumar-jha-499064305/)
 
 *"Small, conscious daily choices compound into planetary restoration. Code for the Earth."*
 
