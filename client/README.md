@@ -1,16 +1,40 @@
-# React + Vite
+# 🌿 Vasudha Frontend Client (React 19 + Vite 7)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This directory houses the client application for **Vasudha (वसुधा • ವಸುಧಾ)** — an environmental intelligence, carbon footprint auditing, and real-time IoT platform.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🚀 Key Frontend Features
 
-## React Compiler
+- **React 19 & Vite 7**: Ultra-fast build times, Concurrent Rendering, and modern hook primitives.
+- **Multi-Vector Carbon Calculator**: Interactive dynamic SVG radial gauges, cubic-bezier count-up animations, and real-time open-source API integrations.
+- **Real-Time IoT Telemetry**: Direct Firebase Realtime Database websocket listener subscribing to live smart electricity meter readings (`electricity/{uid}/units`).
+- **Atmospheric Intelligence**: Open-Meteo Air Quality & Geocoding APIs with debounced search query cancellation via `AbortController`.
+- **Vasudha AI Assistant**: Embedded compact chat widget powered by Groq LLM inference enriched with live environmental conditions.
+- **Fail-Safe Offline Eco Runner**: HTML5 Canvas 2D + Web Audio API 60 FPS infinite runner activating automatically during offline network interruptions.
+- **Client-Side Document Synthesis**: High-resolution ESG certificate rendering and instant 80G tax donation invoice generation powered by `jspdf`.
+- **Living Grove Tree Donation**: Dynamic SVG tree planting visualization with wandering firefly particles and Razorpay checkout modal.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## 🛠️ Scripts
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```bash
+# Start Vite development server (localhost:5173)
+npm run dev
+
+# Compile production bundle to /dist
+npm run build
+
+# Preview production build locally
+npm run preview
+
+# Run ESLint validation
+npm run lint
+```
+
+---
+
+## 🔗 Root Documentation
+
+For complete system architecture, IoT hardware wiring schematics, backend REST API specifications, and environment setup, refer to the master [Project README](../README.md).
