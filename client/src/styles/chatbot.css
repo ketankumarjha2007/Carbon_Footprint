@@ -921,3 +921,11 @@
         border-radius: 18px;
     }
 }
+
+
+/* Clean styling for AI bold highlights */
+.bot-message .message-bold,
+.user-message .message-bold {
+    color: #ffffff;
+    font-weight: 600;
+}

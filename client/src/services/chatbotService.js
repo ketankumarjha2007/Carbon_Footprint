@@ -218,7 +218,7 @@ const getEnvironmentData = async (
 // SEND MESSAGE TO BOT
 // =========================================================
 
-const sendMessageToBot = async (message) => {
+const sendMessageToBot = async (message, history = []) => {
 
     try {
 
@@ -251,7 +251,17 @@ const sendMessageToBot = async (message) => {
         // REQUEST BODY
         // -----------------------------------------------------
 
+        const formattedHistory = Array.isArray(history)
+            ? history
+                .filter((item) => item && item.text && (item.sender === "user" || item.sender === "bot"))
+                .map((item) => ({
+                    role: item.sender === "user" ? "user" : "assistant",
+                    content: item.text
+                }))
+            : [];
+
         const requestBody = {
+            history: formattedHistory,
 
             message,
 

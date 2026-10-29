@@ -52,7 +52,7 @@ function Chatbot() {
         }, 1500);
 
         try {
-            const reply = await sendMessageToBot(message);
+            const reply = await sendMessageToBot(message, messages);
 
             // Make the thinking experience visible
             await new Promise((resolve) =>
